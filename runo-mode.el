@@ -65,7 +65,7 @@
 	   (end-count (runo-tavu-loppu (cl-subseq word core-count)))
 	   (end (+ core-count end-count)))
       (cons (cl-subseq word 0 end)
-	    (runo-form-syllable (cl-subseq word end))))))
+	    (runo-syllabificate (cl-subseq word end))))))
 
 (defun runo-tavu-ydin (word)
   "Return the core vowels and preceeding consonants of the first syllable in WORD."
