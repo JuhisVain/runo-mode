@@ -33,20 +33,25 @@
 (defconst runo-resonant-double-consonant
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
-
-(defun runo-process-word (word)
-  "Split WORD into finnish syllables."
-  (let* ((first-vowel-index (string-match-p runo-vowel word))
-	 (vowel-next (cl-subseq word first-vowel-index (+ 2 first-vowel-index))))
-    ;; Vowel length in first syllable:
-    (cond ((string-match runo-diphtong vowel-next)
-	   'diphtongi)
-	  ((string-match runo-long-vowel vowel-next)
-	   'pitkä)
-	  (t
-	   'lyhyt)
-	  )
     ))
+
+(defun runo-syllabificate-line (line)
+  ""
+  (let* ((split-line (split-string line (rx word-boundary) t))
+	 (syllables (list nil))
+	 (tail syllables))
+    (dolist (string split-line)
+      (cond ((string-match "\\w" string)
+	     (dolist (syllable (runo-syllabificate string))
+	       (setf (car tail) (list syllable
+				      (length syllable)
+				      (runo-syllable-length syllable))
+		     (cdr tail) (list nil)
+		     tail (cdr tail))))
+	    (t (setf (car tail) (list string (length string))
+		     (cdr tail) (list nil)
+		     tail (cdr tail)))))
+    syllables))
 
 (defun runo-syllabificate (word)
   "Return list of finnish syllables a single WORD."
