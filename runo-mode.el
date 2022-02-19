@@ -62,6 +62,30 @@
       (cons (cl-subseq word 0 end)
 	    (runo-syllabificate (cl-subseq word end))))))
 
+(defun runo-syllable-length (syllable)
+  "Return symbol designating SYLLABLE's length."
+  (cond ((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (regex runo-vowel)
+			   eol)
+		       syllable)
+	 'lyhyt)
+	((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (regex runo-vowel)
+			   (0+ (regex runo-consonant))
+			   eol)
+		       syllable)
+	 'puolipitkä)
+	((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (or (regex runo-long-vowel)
+			       (regex runo-diphtong))
+			   (0+ (regex runo-consonant))
+			   eol)
+		       syllable)
+	 'pitkä)))
+
 (defun runo-tavu-ydin (word)
   "Return the core vowels and preceeding consonants of the first syllable in WORD."
   (cond ((string-match
