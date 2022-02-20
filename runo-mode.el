@@ -33,7 +33,24 @@
 (defconst runo-resonant-double-consonant
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
-    ))
+(defun runo-paint-line (limit)
+  ""
+  (interactive "nLimit?") ;; testing
+  (let* ((point (point))
+	 (line (progn (re-search-forward (rx bol (regex ".*") eol) limit 'GOTO-END)
+		      (match-string 0)))
+	 (elements (runo-syllabificate-line line)))
+    (dolist (e elements)
+      (let ((syllable-length (caddr e)))
+	(when syllable-length
+	  (put-text-property point
+			     (+ point (cadr e))
+			     'font-lock-face
+			     (cl-case syllable-length
+			       (pitkä '(:background "red"))
+			       (puolipitkä '(:background "yellow"))
+			       (lyhyt '(:background "green")))))
+	(setf point (+ point (cadr e)))))))
 
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string length &optional syllable-length)."
