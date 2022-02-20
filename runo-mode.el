@@ -141,6 +141,16 @@ iskien peitsellään tai jänteelt' ampuen nuolen.\"")
       (push (runo-syllabificate word) syllables))
     (reverse syllables)))
 
+(defun runo-mode ()
+  "Yolo."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map runo-mode-map)
+  ;;;;(set-syntax-table runo-mode-syntax-table)
+  (setq major-mode 'runo-mode)
+  (setq mode-name "RUNO")
+  (run-hooks 'runo-mode-hook))
+
 
 (provide 'runo-mode)
 ;;; runo-mode.el ends here
