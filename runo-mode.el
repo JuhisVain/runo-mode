@@ -36,22 +36,16 @@
     ))
 
 (defun runo-syllabificate-line (line)
-  ""
-  (let* ((split-line (split-string line (rx word-boundary) t))
-	 (syllables (list nil))
-	 (tail syllables))
-    (dolist (string split-line)
-      (cond ((string-match "\\w" string)
-	     (dolist (syllable (runo-syllabificate string))
-	       (setf (car tail) (list syllable
-				      (length syllable)
-				      (runo-syllable-length syllable))
-		     (cdr tail) (list nil)
-		     tail (cdr tail))))
-	    (t (setf (car tail) (list string (length string))
-		     (cdr tail) (list nil)
-		     tail (cdr tail)))))
-    syllables))
+  "Break down string LINE into list of lists of form (string length &optional syllable-length)."
+  (let ((split-line (split-string line (rx word-boundary) t)))
+    (mapcan (lambda (string)
+	      (cond ((string-match "\\w" string)
+		     (mapcar (lambda (syllable)
+			       (list syllable (length syllable)
+				     (runo-syllable-length syllable)))
+			     (runo-syllabificate string)))
+		    (t (list (list string (length string))))))
+	    split-line)))
 
 (defun runo-syllabificate (word)
   "Return list of finnish syllables a single WORD."
