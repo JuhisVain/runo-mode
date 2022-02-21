@@ -33,23 +33,35 @@
 (defconst runo-resonant-double-consonant
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
+(defun runo-syllable-color (syllable-type index)
+  ""
+  (list :background
+	(cl-case syllable-type
+	  (pitkä (nth (mod index 2) '("#ff8e8a" "#ffbfbd")))
+	  (puolipitkä (nth (mod index 2) '("#f1b476" "#f5cda4")))
+	  (lyhyt (nth (mod index 2) '("#f4eb86" "#f8f3b5"))))))
+
 (defun runo-paint-line (limit)
   ""
   (interactive "nLimit?") ;; testing
   (let* ((point (point))
 	 (line (progn (re-search-forward (rx bol (regex ".*") eol) limit 'GOTO-END)
 		      (match-string 0)))
-	 (elements (runo-syllabificate-line line)))
+	 (elements (runo-syllabificate-line line))
+	 (syllable-index 0))
     (dolist (e elements)
       (let ((syllable-length (caddr e)))
 	(when syllable-length
 	  (put-text-property point
 			     (+ point (cadr e))
 			     'font-lock-face
-			     (cl-case syllable-length
-			       (pitkä '(:background "red"))
-			       (puolipitkä '(:background "yellow"))
-			       (lyhyt '(:background "green")))))
+			     ;;(cl-case syllable-length
+			       ;;(pitkä '(:background "red"))
+			       ;;(puolipitkä '(:background "yellow"))
+			       ;;(lyhyt '(:background "green")))
+			     (runo-syllable-color syllable-length syllable-index)
+			     )
+	  (setf syllable-index (1+ syllable-index)))
 	(setf point (+ point (cadr e)))))))
 
 (defun runo-syllabificate-line (line)
