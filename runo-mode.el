@@ -4,6 +4,7 @@
 ;;
 
 ;;; Code:
+(require 'cl-lib)
 (defvar runo-mode-hook nil)
 
 (defvar runo-mode-map
