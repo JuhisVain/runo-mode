@@ -34,6 +34,9 @@
 (defconst runo-resonant-double-consonant
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
+(defconst runo-kesuura ; word stop
+  "\\(?:[,.:; ]\\)\\|\\(?:\\W*$\\)")
+
 (defun runo-syllable-color (syllable-type index)
   ""
   (list :background
@@ -41,6 +44,41 @@
 	  (pitkä (nth (mod index 2) '("#ff8e8a" "#ffbfbd")))
 	  (puolipitkä (nth (mod index 2) '("#f1b476" "#f5cda4")))
 	  (lyhyt (nth (mod index 2) '("#f4eb86" "#f8f3b5"))))))
+
+(defvar runo-eeppinen-mitta
+  '(seq ; säe
+    (or ; 1. metron
+     (seq (pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
+	  (lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
+	  (lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
+     (seq (pitkä puolipitkä) ; vaihtoehtoinen metron
+	  (pitkä puolipitkä)))
+    (or
+     (seq (pitkä puolipitkä)
+	  (lyhyt puolipitkä)
+	  (lyhyt puolipitkä))
+     (seq (pitkä puolipitkä)
+	  (pitkä puolipitkä)))
+    (or
+     (seq (pitkä puolipitkä)
+	  (lyhyt puolipitkä)
+	  (lyhyt puolipitkä))
+     (seq (pitkä puolipitkä)
+	  (pitkä puolipitkä)))
+    (or
+     (seq (pitkä puolipitkä)
+	  (lyhyt puolipitkä)
+	  (lyhyt puolipitkä))
+     (seq (pitkä puolipitkä)
+	  (pitkä puolipitkä)))
+    (seq (pitkä puolipitkä) ; 5. metron
+	 (lyhyt puolipitkä)
+	 (lyhyt puolipitkä))
+    (seq (pitkä puolipitkä)
+	 (pitkä puolipitkä lyhyt))
+    (regexp runo-kesuura)))
+
+(defvar runo-mitta runo-eeppinen-mitta)
 
 (defun runo-paint-line (limit)
   ""
