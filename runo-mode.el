@@ -48,7 +48,7 @@
 	  (lyhyt (nth (mod index 2) '("#f4eb86" "#f8f3b5"))))))
 
 (defvar runo-eeppinen-mitta
-  '(seq ; säe
+  `(seq ; säe
     (or ; 1. metron
      (seq (pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
 	  (lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
@@ -78,7 +78,7 @@
 	 (lyhyt puolipitkä))
     (seq (pitkä puolipitkä)
 	 (pitkä puolipitkä lyhyt))
-    (regexp runo-kesuura)))
+    (regexp ,runo-kesuura)))
 
 (defvar runo-mitta runo-eeppinen-mitta)
 
