@@ -17,7 +17,9 @@
 (add-to-list 'auto-mode-alist '("\\.runo\\'" . runo-mode))
 
 (defconst runo-diphtong
-  (rx (or "ai" "ei" "oi" "ui" "yi" "äi" "öi" "au" "eu" "iu" "ou" "äy" "öy" "ey" "iy" "uo" "yö" "ie")))
+  (rx (or "ai" "ei" "oi" "ui" "yi" "äi" "öi" "au" "eu" "iu" "ou" "äy" "öy" "ey" "iy")))
+(defconst runo-beginning-diphtong
+  (rx (or "uo" "yö" "ie")))
 
 (defconst runo-vowel
   "[aeiouyäö]")
@@ -115,14 +117,16 @@
 		    (t (list (list string (length string))))))
 	    split-line)))
 
-(defun runo-syllabificate (word)
-  "Return list of finnish syllables a single WORD."
+(defun runo-syllabificate (word &optional syl-index)
+  "Return list of finnish syllables a single WORD.
+SYL-INDEX will hold index of current syllable."
   (unless (zerop (length word))
-    (let* ((core-count (runo-tavu-ydin word))
+    (let* ((syl-index (or syl-index 0))
+	   (core-count (runo-tavu-ydin word syl-index))
 	   (end-count (runo-tavu-loppu (cl-subseq word core-count)))
 	   (end (+ core-count end-count)))
       (cons (cl-subseq word 0 end)
-	    (runo-syllabificate (cl-subseq word end))))))
+	    (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))
 
 (defun runo-syllable-length (syllable)
   "Return symbol designating SYLLABLE's length."
@@ -148,13 +152,23 @@
 		       syllable)
 	 'pitkä)))
 
-(defun runo-tavu-ydin (word)
-  "Return the core vowels and preceeding consonants of the first syllable in WORD."
+;; http://www.kielitoimistonohjepankki.fi/ohje/153
+(defun runo-tavu-ydin (word syllable-index)
+  "Return the vowels and preceeding consonants of the first syllable in WORD.
+SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
+  (message "RTY %s %s" word syllable-index)
   (cond ((string-match
-	  (rx (0+ (regex runo-consonant))
-	      (or (regex runo-diphtong)
-		  (regex runo-long-vowel)
-		  (regex runo-vowel)))
+	  (cond ((zerop syllable-index)
+		 (rx (0+ (regex runo-consonant))
+		     (or (regex runo-diphtong)
+			 (regex runo-beginning-diphtong)
+			 (regex runo-long-vowel)
+			 (regex runo-vowel))))
+		(t
+		 (rx (0+ (regex runo-consonant))
+		     (or (regex runo-diphtong)
+			 (regex runo-long-vowel)
+			 (regex runo-vowel)))))
 	  word)
 	 (cadr (match-data)))
 	(t (error "No syllable core vowel found in \"%s\"" word))))
