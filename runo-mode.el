@@ -82,6 +82,57 @@
 
 (defvar runo-mitta runo-eeppinen-mitta)
 
+(defun runo-analyze-line (line)
+  "Does some kind of analysis on LINE produced by runo-syllabificate-line."
+  (let* ((match nil))
+    (cl-labels
+      ((line-matcher (root string-list)
+		     (cl-block line-matcher
+		       (pcase root
+			 (`(seq . ,seq-elements)
+			  (let ((sub-list string-list))
+			    (dolist (sub-root seq-elements)
+			      (let ((match-rem (line-matcher sub-root sub-list)))
+				(message "remaining head : %s" (car match-rem))
+				(cond (match-rem
+				       (setf sub-list match-rem))
+				      ((null match-rem) ; sequence complete
+				       (cl-return-from line-matcher sub-list))
+				      )))
+			    (cl-return-from line-matcher sub-list)))
+			 (`(or . ,or-elements)
+			  (dolist (sub-root or-elements)
+			    (let ((match-rem (line-matcher sub-root string-list)))
+			      (cond (match-rem
+				     (cl-return-from line-matcher match-rem))
+				    (t
+				     ()))))
+			  (cl-return-from line-matcher nil))
+			 (`(regexp ,rx)
+			  (when (listp string-list)
+			    (message "rx %s :: target: %s" rx (car string-list))
+			    (when (string-match rx (caar string-list))
+			      (message "REGEXP found!")
+			      (push (list 'regexp rx (car string-list)) match)
+			      (cdr string-list))))
+			 (options
+			  (message "%s = %s ?" (car string-list) options)
+			  (cl-do* ((sub-list-head string-list (cdr sub-list-head))
+				   (seekee (car sub-list-head) (car sub-list-head)))
+			      ((null sub-list-head))
+			    (when (cddr seekee) ; is syllable?
+			      (message "Found %s" seekee)
+			      (cond ((member (caddr seekee) options)
+				     (message " -> That's a member! %s of  %s" (caddr seekee) options)
+				     (push seekee match)
+				     (cl-return-from line-matcher (cdr sub-list-head)))
+				    (t (cl-return-from line-matcher nil))))
+			    ))
+			 ))))
+      (line-matcher runo-mitta line)
+      match
+      )))
+
 (defun runo-paint-line (limit)
   ""
   (interactive "nLimit?") ;; testing
@@ -157,7 +208,6 @@ SYL-INDEX will hold index of current syllable."
 (defun runo-tavu-ydin (word syllable-index)
   "Return the vowels and preceeding consonants of the first syllable in WORD.
 SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
-  (message "RTY %s %s" word syllable-index)
   (cond ((string-match
 	  (cond ((zerop syllable-index)
 		 (rx (0+ (regex runo-consonant))
