@@ -146,7 +146,8 @@ SYL-INDEX will hold index of current syllable."
 	((string-match (rx bol
 			   (0+ (regex runo-consonant))
 			   (or (regex runo-long-vowel)
-			       (regex runo-diphtong))
+			       (regex runo-diphtong)
+			       (regex runo-beginning-diphtong))
 			   (0+ (regex runo-consonant))
 			   eol)
 		       syllable)
