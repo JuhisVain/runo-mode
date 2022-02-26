@@ -50,88 +50,56 @@
 (defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
-     (seq (pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
-	  (lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
-	  (lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
-     (seq (pitkä puolipitkä) ; vaihtoehtoinen metron
-	  (pitkä puolipitkä)))
+     (seq (syllable pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
+	  (syllable lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
+	  (syllable lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
+     (seq (syllable pitkä puolipitkä) ; vaihtoehtoinen metron
+	  (syllable pitkä puolipitkä)))
     (or
-     (seq (pitkä puolipitkä)
-	  (lyhyt puolipitkä)
-	  (lyhyt puolipitkä))
-     (seq (pitkä puolipitkä)
-	  (pitkä puolipitkä)))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable lyhyt puolipitkä)
+	  (syllable lyhyt puolipitkä))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable pitkä puolipitkä)))
     (or
-     (seq (pitkä puolipitkä)
-	  (lyhyt puolipitkä)
-	  (lyhyt puolipitkä))
-     (seq (pitkä puolipitkä)
-	  (pitkä puolipitkä)))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable lyhyt puolipitkä)
+	  (syllable lyhyt puolipitkä))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable pitkä puolipitkä)))
     (or
-     (seq (pitkä puolipitkä)
-	  (lyhyt puolipitkä)
-	  (lyhyt puolipitkä))
-     (seq (pitkä puolipitkä)
-	  (pitkä puolipitkä)))
-    (seq (pitkä puolipitkä) ; 5. metron
-	 (lyhyt puolipitkä)
-	 (lyhyt puolipitkä))
-    (seq (pitkä puolipitkä)
-	 (pitkä puolipitkä lyhyt))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable lyhyt puolipitkä)
+	  (syllable lyhyt puolipitkä))
+     (seq (syllable pitkä puolipitkä)
+	  (syllable pitkä puolipitkä)))
+    (seq (syllable pitkä puolipitkä) ; 5. metron
+	 (syllable lyhyt puolipitkä)
+	 (syllable lyhyt puolipitkä))
+    (seq (syllable pitkä puolipitkä)
+	 (syllable pitkä puolipitkä lyhyt))
     (regexp ,runo-kesuura)))
 
 (defvar runo-mitta runo-eeppinen-mitta)
 
-(defun runo-analyze-line (line)
-  "Does some kind of analysis on LINE produced by runo-syllabificate-line."
-  (let* ((match nil))
-    (cl-labels
-      ((line-matcher (root string-list)
-		     (cl-block line-matcher
-		       (pcase root
-			 (`(seq . ,seq-elements)
-			  (let ((sub-list string-list))
-			    (dolist (sub-root seq-elements)
-			      (let ((match-rem (line-matcher sub-root sub-list)))
-				(message "remaining head : %s" (car match-rem))
-				(cond (match-rem
-				       (setf sub-list match-rem))
-				      ((null match-rem) ; sequence complete
-				       (cl-return-from line-matcher sub-list))
-				      )))
-			    (cl-return-from line-matcher sub-list)))
-			 (`(or . ,or-elements)
-			  (dolist (sub-root or-elements)
-			    (let ((match-rem (line-matcher sub-root string-list)))
-			      (cond (match-rem
-				     (cl-return-from line-matcher match-rem))
-				    (t
-				     ()))))
-			  (cl-return-from line-matcher nil))
-			 (`(regexp ,rx)
-			  (when (listp string-list)
-			    (message "rx %s :: target: %s" rx (car string-list))
-			    (when (string-match rx (caar string-list))
-			      (message "REGEXP found!")
-			      (push (list 'regexp rx (car string-list)) match)
-			      (cdr string-list))))
-			 (options
-			  (message "%s = %s ?" (car string-list) options)
-			  (cl-do* ((sub-list-head string-list (cdr sub-list-head))
-				   (seekee (car sub-list-head) (car sub-list-head)))
-			      ((null sub-list-head))
-			    (when (cddr seekee) ; is syllable?
-			      (message "Found %s" seekee)
-			      (cond ((member (caddr seekee) options)
-				     (message " -> That's a member! %s of  %s" (caddr seekee) options)
-				     (push seekee match)
-				     (cl-return-from line-matcher (cdr sub-list-head)))
-				    (t (cl-return-from line-matcher nil))))
-			    ))
-			 ))))
-      (line-matcher runo-mitta line)
-      match
-      )))
+;; Should get something like this out of analysis
+'((("Kuo" 3 pitkä)
+   ("li" 2 lyhyt)
+   ("han" 3 puolipitkä))
+  (("Pat" 3 puolipitkä)
+   ("rok" 3 puolipitkä))
+  (("los" 3 puolipitkä)
+   ("kin" 3 puolipitkä))
+  (("vaikk" 5 pitkä)
+   ("u" 1 lyhyt)
+   ("ro" 2 lyhyt))
+  (("homp" 4 puolipitkä)
+   ("o" 1 lyhyt)
+   ("li" 2 lyhyt))
+  (("pal" 3 puolipitkä)
+   ("jon" 3 puolipitkä)))
+
+;; TODO: the meter must be compiled into a graph and pathed through
 
 (defun runo-paint-line (limit)
   ""
