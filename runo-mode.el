@@ -99,7 +99,81 @@
   (("pal" 3 puolipitkä)
    ("jon" 3 puolipitkä)))
 
-;; TODO: the meter must be compiled into a graph and pathed through
+'(seq (or (seq (or a aa)
+	       (or b bb)
+	       (or c cc))
+	  (seq (or d dd)
+	       e))
+      (seq f
+	   (or g gg)
+	   (or h hh)))
+;;--> ;; I think this is wrong
+'(((a (b (c (f (g (h (hh)))
+	       (gg (h (hh)))))
+	 (cc (f (g (h (hh)))
+		(gg (h (hh))))))
+      (bb (c (f (g (h (hh)))
+		(gg (h (hh)))))
+	  (cc (f (g (h (hh)))
+		 (gg (h (hh)))))))
+   (aa (b (c (f (g (h (hh)))
+		(gg (h (hh)))))
+	  (cc (f (g (h (hh)))
+		 (gg (h (hh))))))
+       (bb (c (f (g (h (hh)))
+		 (gg (h (hh)))))
+	   (cc (f (g (h (hh)))
+		  (gg (h (hh))))))))
+  ((d (e (f (g (h (hh)))
+	    (gg (h (hh))))))
+   (dd (e (f (g (h (hh)))
+	     (gg (h (hh))))))))
+
+'(runo-compiler-dispatch '(seq f
+			       (or g gg)
+			       (or h hh)))
+;;--> ; this is right but will break on larger structures:
+'(f ; sequence start
+  (g ; g or gg
+   (h) ; h or hh and end sequence
+   (hh))
+  (gg
+   (h)
+   (hh)))
+
+(defun runo-compiler-dispatch (form)
+  "Dispatch FORM to subexpression compilers."
+  (message "dispatch: %s" form)
+  (let ((ret
+	 (pcase (if (listp form)
+		    (car form)
+		  form)
+    ('seq
+     (runo-compile-sequence (cdr form)))
+    (`(or . ,options )
+     (message "DISPATCH weird or match %s" options)
+     (mapcar (lambda (o)
+	       (cons o (runo-compiler-dispatch (cdr form))))
+	     (runo-compile-options options)))
+    (syllable
+     syllable)))
+	)
+    (message "DISPATCH returns %s" ret)
+    ret))
+
+;; (seq a b c d) -> (a (b (c (d nil))))))
+(defun runo-compile-sequence (sequence)
+  "Compiles a SEQUENCE into usable form."
+  (when sequence
+    (cons
+     (runo-compiler-dispatch sequence)
+     (runo-compiler-dispatch (cdr sequence)))))
+
+;; (or a b c) -> ((a) (b) (c))
+(defun runo-compile-options (options)
+  "Compiles an OPTIONS set into usable form."
+  (mapcar 'runo-compiler-dispatch options))
+
 
 (defun runo-paint-line (limit)
   ""
