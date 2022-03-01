@@ -118,39 +118,35 @@
    (j (k (h) (hh)) (kk (h) (hh)))
    (jj (k (h) (hh)) (kk (h) (hh)))))
 
-(defun runo-compiler-dispatch (form)
-  "Dispatch FORM to subexpression compilers."
-  (message "dispatch: %s" form)
+;; Only do a raw call on simple test data!
+(defun runo-compiler-dispatch (form &optional subsequent)
+  "Return !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.  Ignore SUBSEQUENT."
+  (pcase form
+    (`(seq . ,sequence)
+     (runo-compile-sequence sequence subsequent))
+    (`(or . ,options)
+     (runo-compile-options options subsequent))
+    (element
+     (cons element subsequent))))
+
+;;'(a b c d e) -> (a (b (c (d (e nil)))))
+(defun runo-compile-sequence (form old-subs)
+  ""
   (let ((ret
-	 (pcase (if (listp form)
-		    (car form)
-		  form)
-    ('seq
-     (runo-compile-sequence (cdr form)))
-    (`(or . ,options )
-     (message "DISPATCH weird or match %s" options)
-     (mapcar (lambda (o)
-	       (cons o (runo-compiler-dispatch (cdr form))))
-	     (runo-compile-options options)))
-    (syllable
-     syllable)))
-	)
-    (message "DISPATCH returns %s" ret)
+	 (let ((subsequent (when (cdr form)
+			     (runo-compile-sequence (cdr form) old-subs))))
+	   (runo-compiler-dispatch (car form) (or subsequent old-subs)))))
+    (when (listp (caar ret))
+	(setf ret (cl-reduce 'append ret))) ;; WTF
     ret))
 
-;; (seq a b c d) -> (a (b (c (d nil))))))
-(defun runo-compile-sequence (sequence)
-  "Compiles a SEQUENCE into usable form."
-  (when sequence
-    (cons
-     (runo-compiler-dispatch sequence)
-     (runo-compiler-dispatch (cdr sequence)))))
-
-;; (or a b c) -> ((a) (b) (c))
-(defun runo-compile-options (options)
-  "Compiles an OPTIONS set into usable form."
-  (mapcar 'runo-compiler-dispatch options))
-
+;;'(a b c d e) -> ((a) (b) (c) (d) (e))
+(defun runo-compile-options (form subsequent)
+  ""
+  (mapcar (lambda (x)
+	    ;;(message "OR dispatches!")
+	    (runo-compiler-dispatch x subsequent))
+	  form))
 
 (defun runo-paint-line (limit)
   ""
