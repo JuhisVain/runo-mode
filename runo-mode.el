@@ -99,47 +99,24 @@
   (("pal" 3 puolipitkä)
    ("jon" 3 puolipitkä)))
 
-'(seq (or (seq (or a aa)
-	       (or b bb)
-	       (or c cc))
-	  (seq (or d dd)
-	       e))
-      (seq f
-	   (or g gg)
-	   (or h hh)))
-;;--> ;; I think this is wrong
-'(((a (b (c (f (g (h (hh)))
-	       (gg (h (hh)))))
-	 (cc (f (g (h (hh)))
-		(gg (h (hh))))))
-      (bb (c (f (g (h (hh)))
-		(gg (h (hh)))))
-	  (cc (f (g (h (hh)))
-		 (gg (h (hh)))))))
-   (aa (b (c (f (g (h (hh)))
-		(gg (h (hh)))))
-	  (cc (f (g (h (hh)))
-		 (gg (h (hh))))))
-       (bb (c (f (g (h (hh)))
-		 (gg (h (hh)))))
-	   (cc (f (g (h (hh)))
-		  (gg (h (hh))))))))
-  ((d (e (f (g (h (hh)))
-	    (gg (h (hh))))))
-   (dd (e (f (g (h (hh)))
-	     (gg (h (hh))))))))
+'(runo-compiler-dispatch '(seq (or f ff)
+			       (or (seq (or g gg) (or i ii))
+				   (seq (or j jj) (or k kk)))
+			       (or h hh))
+			 nil)
 
-'(runo-compiler-dispatch '(seq f
-			       (or g gg)
-			       (or h hh)))
-;;--> ; this is right but will break on larger structures:
-'(f ; sequence start
-  (g ; g or gg
-   (h) ; h or hh and end sequence
-   (hh))
-  (gg
-   (h)
-   (hh)))
+;; should produce:
+'(:start
+  (f
+   (g (i (h) (hh)) (ii (h) (hh)))
+   (gg (i (h) (hh)) (ii (h) (hh)))
+   (j (k (h) (hh)) (kk (h) (hh)))
+   (jj (k (h) (hh)) (kk (h) (hh))))
+  (ff
+   (g (i (h) (hh)) (ii (h) (hh)))
+   (gg (i (h) (hh)) (ii (h) (hh)))
+   (j (k (h) (hh)) (kk (h) (hh)))
+   (jj (k (h) (hh)) (kk (h) (hh)))))
 
 (defun runo-compiler-dispatch (form)
   "Dispatch FORM to subexpression compilers."
