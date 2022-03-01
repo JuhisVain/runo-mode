@@ -50,34 +50,34 @@
 (defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
-     (seq (syllable pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
-	  (syllable lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
-	  (syllable lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
-     (seq (syllable pitkä puolipitkä) ; vaihtoehtoinen metron
-	  (syllable pitkä puolipitkä)))
+     (seq (or pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
+	  (or lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
+	  (or lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
+     (seq (or pitkä puolipitkä) ; vaihtoehtoinen metron
+	  (or pitkä puolipitkä)))
     (or
-     (seq (syllable pitkä puolipitkä)
-	  (syllable lyhyt puolipitkä)
-	  (syllable lyhyt puolipitkä))
-     (seq (syllable pitkä puolipitkä)
-	  (syllable pitkä puolipitkä)))
+     (seq (or pitkä puolipitkä)
+	  (or lyhyt puolipitkä)
+	  (or lyhyt puolipitkä))
+     (seq (or pitkä puolipitkä)
+	  (or pitkä puolipitkä)))
     (or
-     (seq (syllable pitkä puolipitkä)
-	  (syllable lyhyt puolipitkä)
-	  (syllable lyhyt puolipitkä))
-     (seq (syllable pitkä puolipitkä)
-	  (syllable pitkä puolipitkä)))
+     (seq (or pitkä puolipitkä)
+	  (or lyhyt puolipitkä)
+	  (or lyhyt puolipitkä))
+     (seq (or pitkä puolipitkä)
+	  (or pitkä puolipitkä)))
     (or
-     (seq (syllable pitkä puolipitkä)
-	  (syllable lyhyt puolipitkä)
-	  (syllable lyhyt puolipitkä))
-     (seq (syllable pitkä puolipitkä)
-	  (syllable pitkä puolipitkä)))
-    (seq (syllable pitkä puolipitkä) ; 5. metron
-	 (syllable lyhyt puolipitkä)
-	 (syllable lyhyt puolipitkä))
-    (seq (syllable pitkä puolipitkä)
-	 (syllable pitkä puolipitkä lyhyt))
+     (seq (or pitkä puolipitkä)
+	  (or lyhyt puolipitkä)
+	  (or lyhyt puolipitkä))
+     (seq (or pitkä puolipitkä)
+	  (or pitkä puolipitkä)))
+    (seq (or pitkä puolipitkä) ; 5. metron
+	 (or lyhyt puolipitkä)
+	 (or lyhyt puolipitkä))
+    (seq (or pitkä puolipitkä)
+	 (or pitkä puolipitkä lyhyt))
     (regexp ,runo-kesuura)))
 
 (defvar runo-mitta runo-eeppinen-mitta)
