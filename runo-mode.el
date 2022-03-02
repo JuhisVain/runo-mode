@@ -120,7 +120,8 @@
 
 ;; Only do a raw call on simple test data!
 (defun runo-compiler-dispatch (form &optional subsequent)
-  "Return !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.  Ignore SUBSEQUENT."
+  "Return !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
+SUBSEQUENT used for voodoo recursion."
   (pcase form
     (`(seq . ,sequence)
      (runo-compile-sequence sequence subsequent))
