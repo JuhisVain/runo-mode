@@ -79,6 +79,8 @@
     (seq (or pitkä puolipitkä)
 	 (or pitkä puolipitkä lyhyt))
     (regexp ,runo-kesuura)))
+;; (runo-meter-count (cons :start (runo-compiler-dispatch runo-eeppinen-mitta)))
+;; -> 2650437
 
 (defvar runo-mitta runo-eeppinen-mitta)
 
@@ -151,6 +153,12 @@ SUBSEQUENT used for voodoo recursion."
   (mapcar (lambda (x)
 	    (runo-compiler-dispatch x subsequent))
 	  form))
+
+(defun runo-meter-count (compiled-meter)
+  "Count primary elements in COMPILED-METER tree."
+  (if compiled-meter
+      (1+ (apply '+ (mapcar 'runo-meter-count (cdr compiled-meter))))
+    0))
 
 (defun runo-paint-line (limit)
   ""
