@@ -105,7 +105,7 @@
 			       (or h hh))
 			 nil)
 
-;; should produce:
+;; produces:
 '(:start
   (f
    (g (i (h) (hh)) (ii (h) (hh)))
@@ -126,8 +126,12 @@
      (runo-compile-sequence sequence subsequent))
     (`(or . ,options)
      (runo-compile-options options subsequent))
-    (element
-     (cons element subsequent))))
+    (element ; mamma mia
+     (if (and (listp subsequent)
+	      (listp (car subsequent))
+	      (not (eq (caar subsequent) 'regexp)))
+	 (cons element subsequent)
+       (list element subsequent)))))
 
 ;;'(a b c d e) -> (a (b (c (d (e nil)))))
 (defun runo-compile-sequence (form old-subs)
@@ -136,15 +140,14 @@
 	 (let ((subsequent (when (cdr form)
 			     (runo-compile-sequence (cdr form) old-subs))))
 	   (runo-compiler-dispatch (car form) (or subsequent old-subs)))))
-    (when (listp (caar ret))
-	(setf ret (cl-reduce 'append ret))) ;; WTF
+    (when (and (listp (car ret)) (listp (caar ret)))
+      (setf ret (cl-reduce 'append ret))) ;; WTF
     ret))
 
 ;;'(a b c d e) -> ((a) (b) (c) (d) (e))
 (defun runo-compile-options (form subsequent)
   ""
   (mapcar (lambda (x)
-	    ;;(message "OR dispatches!")
 	    (runo-compiler-dispatch x subsequent))
 	  form))
 
