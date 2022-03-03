@@ -85,6 +85,7 @@
 (defvar runo-mitta runo-eeppinen-mitta)
 
 ;; Should get something like this out of analysis
+;; Well I'm not getting it
 '((("Kuo" 3 pitkä)
    ("li" 2 lyhyt)
    ("han" 3 puolipitkä))
@@ -159,6 +160,35 @@ SUBSEQUENT used for voodoo recursion."
   (if compiled-meter
       (1+ (apply '+ (mapcar 'runo-meter-count (cdr compiled-meter))))
     0))
+
+(defun runo-next-syllable (line)
+  "Return list starting from next alphabetical string element in LINE."
+  (cl-member-if 'cddr line))
+
+(defun runo-analyze-line (line sub-meter)
+  "Return list of syllable types in LINE on match with SUB-METER."
+  (catch 'FOUND
+    (when (and (null line) (null sub-meter))
+      (throw 'FOUND (list :end)))
+    (let ((next-syllable (runo-next-syllable line)))
+      (message "  ->  %s" (car next-syllable))
+      (dolist (option sub-meter)
+	(let* ((found
+		(pcase option
+		  (`(,`(regexp ,rx))
+		   (when (string-match rx (caar line))
+		     'rx-match))
+		  (next
+		   (when (eq (car next)
+			     (caddar next-syllable))
+		     (car next))))))
+	  (when found
+	    (let ((found-rest
+		   (runo-analyze-line (cdr next-syllable)
+				      (cdr option))))
+	      (when found-rest
+		(throw 'FOUND
+		       (cons found found-rest))))))))))
 
 (defun runo-paint-line (limit)
   ""
