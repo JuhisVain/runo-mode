@@ -136,7 +136,7 @@ SUBSEQUENT used for voodoo recursion."
 	 (cons element subsequent)
        (list element subsequent)))))
 
-;;'(a b c d e) -> (a (b (c (d (e nil)))))
+;;'(a b c d e) -> (a (b (c (d (e . nil)))))
 (defun runo-compile-sequence (form old-subs)
   ""
   (let ((ret
