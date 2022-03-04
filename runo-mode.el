@@ -121,6 +121,150 @@
    (j (k (h) (hh)) (kk (h) (hh)))
    (jj (k (h) (hh)) (kk (h) (hh)))))
 
+
+(defvar rem
+  `(seq ; säe
+    (or ; 1. metron
+     (named-seq daktyyli-1
+		(or pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
+		(or lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
+		(or lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
+     (named-seq spondee-1
+		(or pitkä puolipitkä) ; vaihtoehtoinen metron
+		(or pitkä puolipitkä)))
+    (or
+     (named-seq daktyyli-2
+		(or pitkä puolipitkä)
+		(or lyhyt puolipitkä)
+		(or lyhyt puolipitkä))
+     (named-seq spondee-2
+		(or pitkä puolipitkä)
+		(or pitkä puolipitkä)))
+    (or
+     (named-seq daktyyli-3
+		(or pitkä puolipitkä)
+		(or lyhyt puolipitkä)
+		(or lyhyt puolipitkä))
+     (named-seq spondee-3
+		(or pitkä puolipitkä)
+		(or pitkä puolipitkä)))
+    (or
+     (named-seq daktyyli-4
+		(or pitkä puolipitkä)
+		(or lyhyt puolipitkä)
+		(or lyhyt puolipitkä))
+     (named-seq spondee-4
+		(or pitkä puolipitkä)
+		(or pitkä puolipitkä)))
+    (named-seq daktyyli-5
+	       (or pitkä puolipitkä) ; 5. metron
+	       (or lyhyt puolipitkä)
+	       (or lyhyt puolipitkä))
+    (or (named-seq spondee-6
+		   (or pitkä puolipitkä)
+		   (or pitkä puolipitkä))
+	(named-seq trokee-6
+		   (or pitkä puolipitkä)
+		   (or lyhyt puolipitkä)))
+    ;;(regexp ,runo-kesuura) ;; will break, wasn't too good to begin with
+    ))
+
+'(ral (runo-syllabificate-line "korkea mulla on taatto ja kuoloton kantaja kallis")
+      (rcd rem))
+
+(defun rcd (form &optional subsequent)
+  "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
+SUBSEQUENT used for voodoo recursion."
+  ;;(message "PCASEING: %s" form)
+  (pcase form
+    (`(seq . ,sequence)
+     (rcs sequence subsequent))
+    (`(or . ,options)
+     (rco options subsequent))
+    (`(regexp ,rx)
+     ;;(message "RX %s" rx)
+     (list 'regexp rx))
+    (`(named-seq ,name . ,sequence)
+     ;;(message "Named SEQ")
+     (let ((rest (rcs sequence subsequent)))
+       ;;(message "rest : %s" rest)
+       (if (and (listp rest) (listp (car rest)))
+	   (cl-list* :name name rest)
+	 (list :name name rest))))
+    (element ; mamma mia
+     (if (and (listp subsequent)
+	      (listp (car subsequent)))
+	 (cons element subsequent)
+       (list element subsequent)))))
+
+
+;;'(a b c d e) -> (a (b (c (d (e . nil)))))
+(defun rcs (form old-subs)
+  ""
+  (let ((ret
+	 (let ((subsequent (when (cdr form)
+			     (rcs (cdr form) old-subs))))
+	   (rcd (car form) (or subsequent old-subs)))))
+    (when (and (listp (car ret)) (listp (caar ret)))
+      (setf ret (cl-reduce 'append ret))) ;; WTF
+    ret))
+
+;;'(a b c d e) -> ((a) (b) (c) (d) (e))
+(defun rco (form subsequent)
+  ""
+  (mapcar (lambda (x)
+	    (rcd x subsequent))
+	  form))
+
+;;; :(
+(defun ral (line sub-meter)
+  "Return list of syllable types in LINE on match with SUB-METER."
+  (catch 'FOUND
+    (when (and (null line) (null sub-meter))
+      (throw 'FOUND (list :end)))
+    (let ((next-syllable (runo-next-syllable line)))
+      (dolist (option sub-meter)
+	(let* ((found
+		(pcase option
+		  (`(regexp ,rx)
+		   (when (string-match rx (caar line))
+		     'rx-match))
+		  (`(:name ,name . ,section)
+		   (list :name name))
+		  (next
+		   (when (eq (car next)
+			     (caddar next-syllable))
+		     (car next))))))
+	  (when found
+	    (let ((found-rest
+		   (apply 'ral (pcase (or (and (listp found) (car found))
+					  (and (eq found 'rx-match) 'rx-match))
+				 (:name (list line (cddr option)))
+				 ('rx-match
+				  (list (cdr next-syllable)
+					(cdr (member option sub-meter))))
+				 (- (list (cdr next-syllable) (cdr option)))))))
+	      (when found-rest
+		(throw 'FOUND
+		       (cons found found-rest))))))))))
+
+'(ral (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
+      (rcd rem))
+;; -> GOOD ENOUGH
+'((:name spondee-1)
+  puolipitkä pitkä
+  (:name daktyyli-2)
+  pitkä lyhyt lyhyt
+  (:name daktyyli-3)
+  pitkä lyhyt lyhyt
+  (:name daktyyli-4)
+  pitkä lyhyt puolipitkä
+  (:name daktyyli-5)
+  pitkä puolipitkä lyhyt
+  (:name spondee-6)
+  puolipitkä puolipitkä rx-match :end)
+
+
 ;; Only do a raw call on simple test data!
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
