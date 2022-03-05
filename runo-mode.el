@@ -47,82 +47,10 @@
 	  (puolipitkä (nth (mod index 2) '("#f1b476" "#f5cda4")))
 	  (lyhyt (nth (mod index 2) '("#f4eb86" "#f8f3b5"))))))
 
+
+
+
 (defvar runo-eeppinen-mitta
-  `(seq ; säe
-    (or ; 1. metron
-     (seq (or pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
-	  (or lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
-	  (or lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
-     (seq (or pitkä puolipitkä) ; vaihtoehtoinen metron
-	  (or pitkä puolipitkä)))
-    (or
-     (seq (or pitkä puolipitkä)
-	  (or lyhyt puolipitkä)
-	  (or lyhyt puolipitkä))
-     (seq (or pitkä puolipitkä)
-	  (or pitkä puolipitkä)))
-    (or
-     (seq (or pitkä puolipitkä)
-	  (or lyhyt puolipitkä)
-	  (or lyhyt puolipitkä))
-     (seq (or pitkä puolipitkä)
-	  (or pitkä puolipitkä)))
-    (or
-     (seq (or pitkä puolipitkä)
-	  (or lyhyt puolipitkä)
-	  (or lyhyt puolipitkä))
-     (seq (or pitkä puolipitkä)
-	  (or pitkä puolipitkä)))
-    (seq (or pitkä puolipitkä) ; 5. metron
-	 (or lyhyt puolipitkä)
-	 (or lyhyt puolipitkä))
-    (seq (or pitkä puolipitkä)
-	 (or pitkä puolipitkä lyhyt))
-    (regexp ,runo-kesuura)))
-;; (runo-meter-count (cons :start (runo-compiler-dispatch runo-eeppinen-mitta)))
-;; -> 2650437
-
-(defvar runo-mitta runo-eeppinen-mitta)
-
-;; Should get something like this out of analysis
-;; Well I'm not getting it
-'((("Kuo" 3 pitkä)
-   ("li" 2 lyhyt)
-   ("han" 3 puolipitkä))
-  (("Pat" 3 puolipitkä)
-   ("rok" 3 puolipitkä))
-  (("los" 3 puolipitkä)
-   ("kin" 3 puolipitkä))
-  (("vaikk" 5 pitkä)
-   ("u" 1 lyhyt)
-   ("ro" 2 lyhyt))
-  (("homp" 4 puolipitkä)
-   ("o" 1 lyhyt)
-   ("li" 2 lyhyt))
-  (("pal" 3 puolipitkä)
-   ("jon" 3 puolipitkä)))
-
-'(runo-compiler-dispatch '(seq (or f ff)
-			       (or (seq (or g gg) (or i ii))
-				   (seq (or j jj) (or k kk)))
-			       (or h hh))
-			 nil)
-
-;; produces:
-'(:start
-  (f
-   (g (i (h) (hh)) (ii (h) (hh)))
-   (gg (i (h) (hh)) (ii (h) (hh)))
-   (j (k (h) (hh)) (kk (h) (hh)))
-   (jj (k (h) (hh)) (kk (h) (hh))))
-  (ff
-   (g (i (h) (hh)) (ii (h) (hh)))
-   (gg (i (h) (hh)) (ii (h) (hh)))
-   (j (k (h) (hh)) (kk (h) (hh)))
-   (jj (k (h) (hh)) (kk (h) (hh)))))
-
-
-(defvar rem
   `(seq ; säe
     (or ; 1. metron
      (named-seq daktyyli-1
@@ -166,28 +94,25 @@
 	(named-seq trokee-6
 		   (or pitkä puolipitkä)
 		   (or lyhyt puolipitkä)))
-    (regexp ,runo-kesuura)
-    ))
+    (regexp ,runo-kesuura)))
 
-'(ral (runo-syllabificate-line "korkea mulla on taatto ja kuoloton kantaja kallis")
+(defvar runo-mitta runo-eeppinen-mitta)
+
+'(ral (runo-syllabificate-line "korkea mulla on taatto ja kuoloton kantaja kallis\n")
       (rcd rem))
 
-(defun rcd (form &optional subsequent)
+(defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
-  ;;(message "PCASEING: %s" form)
   (pcase form
     (`(seq . ,sequence)
-     (rcs sequence subsequent))
+     (runo-compile-sequence sequence subsequent))
     (`(or . ,options)
-     (rco options subsequent))
+     (runo-compile-options options subsequent))
     (`(regexp ,rx)
-     ;;(message "RX %s" rx)
      (list 'regexp rx))
     (`(named-seq ,name . ,sequence)
-     ;;(message "Named SEQ")
-     (let ((rest (rcs sequence subsequent)))
-       ;;(message "rest : %s" rest)
+     (let ((rest (runo-compile-sequence sequence subsequent)))
        (if (and (listp rest) (listp (car rest)))
 	   (cl-list* :name name rest)
 	 (list :name name rest))))
@@ -199,25 +124,26 @@ SUBSEQUENT used for voodoo recursion."
 
 
 ;;'(a b c d e) -> (a (b (c (d (e . nil)))))
-(defun rcs (form old-subs)
-  ""
+(defun runo-compile-sequence (form old-subs)
+  "Compile linear sequence based on FORM.
+Don't touch OLD-SUBS."
   (let ((ret
 	 (let ((subsequent (when (cdr form)
-			     (rcs (cdr form) old-subs))))
-	   (rcd (car form) (or subsequent old-subs)))))
+			     (runo-compile-sequence (cdr form) old-subs))))
+	   (runo-compiler-dispatch (car form) (or subsequent old-subs)))))
     (when (and (listp (car ret)) (listp (caar ret)))
       (setf ret (cl-reduce 'append ret))) ;; WTF
     ret))
 
 ;;'(a b c d e) -> ((a) (b) (c) (d) (e))
-(defun rco (form subsequent)
-  ""
+(defun runo-compile-options (form subsequent)
+  "Dispatch compiler on all element in FORM.
+SUBSEQUENT used for voodoo recursion."
   (mapcar (lambda (x)
-	    (rcd x subsequent))
+	    (runo-compiler-dispatch x subsequent))
 	  form))
 
-;;; :(
-(defun ral (line sub-meter)
+(defun runo-analyze-line (line sub-meter)
   "Return list of syllable types in LINE on match with SUB-METER."
   (catch 'FOUND
     (when (and (null sub-meter)
@@ -238,21 +164,22 @@ SUBSEQUENT used for voodoo recursion."
 		     (car next))))))
 	  (when found
 	    (let ((found-rest
-		   (apply 'ral (pcase (or (and (listp found) (car found))
-					  (and (eq found 'rx-match) 'rx-match))
-				 (:name (list line (cddr option)))
-				 ('rx-match
-				  (list (cdr next-syllable)
-					(cdr (member option sub-meter))))
-				 (- (list (cdr next-syllable) (cdr option)))))))
+		   (apply 'runo-analyze-line
+			  (pcase (or (and (listp found) (car found))
+				     (and (eq found 'rx-match) 'rx-match))
+			    (:name (list line (cddr option)))
+			    ('rx-match
+			     (list (cdr next-syllable)
+				   (cdr (member option sub-meter))))
+			    (- (list (cdr next-syllable) (cdr option)))))))
 	      (when found-rest
 		(throw 'FOUND
 		       (cond ((eq found 'rx-match) ; if regexp matches, append matched string
 			      (cons (caar line) found-rest))
 			     (t (cons found found-rest))))))))))))
 
-'(ral (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
-      (rcd rem))
+'(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
+		    (runo-compiler-dispatch rem))
 ;; -> GOOD ENOUGH
 '((:name spondee-1)
   puolipitkä pitkä
@@ -265,11 +192,11 @@ SUBSEQUENT used for voodoo recursion."
   (:name daktyyli-5)
   pitkä puolipitkä lyhyt
   (:name spondee-6)
-  puolipitkä puolipitkä rx-match :end)
+  puolipitkä puolipitkä "'!" :end)
 
 
 ;; Only do a raw call on simple test data!
-(defun runo-compiler-dispatch (form &optional subsequent)
+'(defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
   (pcase form
@@ -285,7 +212,7 @@ SUBSEQUENT used for voodoo recursion."
        (list element subsequent)))))
 
 ;;'(a b c d e) -> (a (b (c (d (e . nil)))))
-(defun runo-compile-sequence (form old-subs)
+'(defun runo-compile-sequence (form old-subs)
   ""
   (let ((ret
 	 (let ((subsequent (when (cdr form)
@@ -296,7 +223,7 @@ SUBSEQUENT used for voodoo recursion."
     ret))
 
 ;;'(a b c d e) -> ((a) (b) (c) (d) (e))
-(defun runo-compile-options (form subsequent)
+'(defun runo-compile-options (form subsequent)
   ""
   (mapcar (lambda (x)
 	    (runo-compiler-dispatch x subsequent))
