@@ -220,7 +220,8 @@ SUBSEQUENT used for voodoo recursion."
 (defun ral (line sub-meter)
   "Return list of syllable types in LINE on match with SUB-METER."
   (catch 'FOUND
-    (when (and (null line) (null sub-meter))
+    (when (and (null sub-meter)
+	       (null (cl-member-if 'cddr line)))
       (throw 'FOUND (list :end)))
     (let ((next-syllable (runo-next-syllable line)))
       (dolist (option sub-meter)
