@@ -166,7 +166,7 @@
 	(named-seq trokee-6
 		   (or pitkä puolipitkä)
 		   (or lyhyt puolipitkä)))
-    ;;(regexp ,runo-kesuura) ;; will break, wasn't too good to begin with
+    (regexp ,runo-kesuura)
     ))
 
 '(ral (runo-syllabificate-line "korkea mulla on taatto ja kuoloton kantaja kallis")
@@ -247,7 +247,9 @@ SUBSEQUENT used for voodoo recursion."
 				 (- (list (cdr next-syllable) (cdr option)))))))
 	      (when found-rest
 		(throw 'FOUND
-		       (cons found found-rest))))))))))
+		       (cond ((eq found 'rx-match) ; if regexp matches, append matched string
+			      (cons (caar line) found-rest))
+			     (t (cons found found-rest))))))))))))
 
 '(ral (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
       (rcd rem))
