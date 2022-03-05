@@ -98,9 +98,6 @@
 
 (defvar runo-mitta runo-eeppinen-mitta)
 
-'(ral (runo-syllabificate-line "korkea mulla on taatto ja kuoloton kantaja kallis\n")
-      (rcd rem))
-
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
@@ -178,8 +175,9 @@ SUBSEQUENT used for voodoo recursion."
 			      (cons (caar line) found-rest))
 			     (t (cons found found-rest))))))))))))
 
+;;; An example:
 '(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
-		    (runo-compiler-dispatch rem))
+		    (runo-compiler-dispatch runo-eeppinen-mitta))
 ;; -> GOOD ENOUGH
 '((:name spondee-1)
   puolipitkä pitkä
@@ -195,40 +193,6 @@ SUBSEQUENT used for voodoo recursion."
   puolipitkä puolipitkä "'!" :end)
 
 
-;; Only do a raw call on simple test data!
-'(defun runo-compiler-dispatch (form &optional subsequent)
-  "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
-SUBSEQUENT used for voodoo recursion."
-  (pcase form
-    (`(seq . ,sequence)
-     (runo-compile-sequence sequence subsequent))
-    (`(or . ,options)
-     (runo-compile-options options subsequent))
-    (element ; mamma mia
-     (if (and (listp subsequent)
-	      (listp (car subsequent))
-	      (not (eq (caar subsequent) 'regexp)))
-	 (cons element subsequent)
-       (list element subsequent)))))
-
-;;'(a b c d e) -> (a (b (c (d (e . nil)))))
-'(defun runo-compile-sequence (form old-subs)
-  ""
-  (let ((ret
-	 (let ((subsequent (when (cdr form)
-			     (runo-compile-sequence (cdr form) old-subs))))
-	   (runo-compiler-dispatch (car form) (or subsequent old-subs)))))
-    (when (and (listp (car ret)) (listp (caar ret)))
-      (setf ret (cl-reduce 'append ret))) ;; WTF
-    ret))
-
-;;'(a b c d e) -> ((a) (b) (c) (d) (e))
-'(defun runo-compile-options (form subsequent)
-  ""
-  (mapcar (lambda (x)
-	    (runo-compiler-dispatch x subsequent))
-	  form))
-
 (defun runo-meter-count (compiled-meter)
   "Count primary elements in COMPILED-METER tree."
   (if compiled-meter
@@ -238,31 +202,6 @@ SUBSEQUENT used for voodoo recursion."
 (defun runo-next-syllable (line)
   "Return list starting from next alphabetical string element in LINE."
   (cl-member-if 'cddr line))
-
-(defun runo-analyze-line (line sub-meter)
-  "Return list of syllable types in LINE on match with SUB-METER."
-  (catch 'FOUND
-    (when (and (null line) (null sub-meter))
-      (throw 'FOUND (list :end)))
-    (let ((next-syllable (runo-next-syllable line)))
-      (message "  ->  %s" (car next-syllable))
-      (dolist (option sub-meter)
-	(let* ((found
-		(pcase option
-		  (`(,`(regexp ,rx))
-		   (when (string-match rx (caar line))
-		     'rx-match))
-		  (next
-		   (when (eq (car next)
-			     (caddar next-syllable))
-		     (car next))))))
-	  (when found
-	    (let ((found-rest
-		   (runo-analyze-line (cdr next-syllable)
-				      (cdr option))))
-	      (when found-rest
-		(throw 'FOUND
-		       (cons found found-rest))))))))))
 
 (defun runo-paint-line (limit)
   ""
