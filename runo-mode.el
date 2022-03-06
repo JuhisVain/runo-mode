@@ -162,8 +162,8 @@ SUBSEQUENT used for voodoo recursion."
 	  (when found
 	    (let ((found-rest
 		   (apply 'runo-analyze-line
-			  (pcase (or (and (listp found) (car found))
-				     (and (eq found 'rx-match) 'rx-match))
+			  (pcase (or (and (listp found) (car found)) ; essentially get name
+				     (and (eq found 'rx-match) 'rx-match)) ; regexp match?
 			    (:name (list line (cddr option)))
 			    ('rx-match
 			     (list (cdr next-syllable)
@@ -172,26 +172,39 @@ SUBSEQUENT used for voodoo recursion."
 	      (when found-rest
 		(throw 'FOUND
 		       (cond ((eq found 'rx-match) ; if regexp matches, append matched string
-			      (cons (caar line) found-rest))
-			     (t (cons found found-rest))))))))))))
+			      (cons (car line) found-rest))
+			     ((and (listp found) (car found))
+			      (cons found found-rest))
+			     (t (cons (car next-syllable) found-rest))))))))))))
 
 ;;; An example:
-'(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
+'(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!\n")
 		    (runo-compiler-dispatch runo-eeppinen-mitta))
-;; -> GOOD ENOUGH
+;; --> Pretty good
 '((:name spondee-1)
-  puolipitkä pitkä
+  ("Pas" 3 puolipitkä)
+  ("kaa" 3 pitkä)
   (:name daktyyli-2)
-  pitkä lyhyt lyhyt
+  ("Saa" 3 pitkä)
+  ("ta" 2 lyhyt)
+  ("na" 2 lyhyt)
   (:name daktyyli-3)
-  pitkä lyhyt lyhyt
+  ("Ei" 2 pitkä)
+  ("ju" 2 lyhyt)
+  ("ma" 2 lyhyt)
   (:name daktyyli-4)
-  pitkä lyhyt puolipitkä
+  ("lau" 3 pitkä)
+  ("ta" 2 lyhyt)
+  ("nyt" 3 puolipitkä)
   (:name daktyyli-5)
-  pitkä puolipitkä lyhyt
+  ("taas" 4 pitkä)
+  ("vit" 3 puolipitkä)
+  ("tu" 2 lyhyt)
   (:name spondee-6)
-  puolipitkä puolipitkä "'!" :end)
-
+  ("Per" 3 puolipitkä)
+  ("kel" 3 puolipitkä)
+  ("'!\n" 2)
+  :end)
 
 (defun runo-meter-count (compiled-meter)
   "Count primary elements in COMPILED-METER tree."
@@ -239,7 +252,7 @@ SUBSEQUENT used for voodoo recursion."
 	    split-line)))
 
 (defun runo-syllabificate (word &optional syl-index)
-  "Return list of finnish syllables a single WORD.
+  "Return list of finnish syllables in a single WORD.
 SYL-INDEX will hold index of current syllable."
   (unless (zerop (length word))
     (let* ((syl-index (or syl-index 0))
