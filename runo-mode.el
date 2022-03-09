@@ -226,6 +226,11 @@ SUBSEQUENT used for voodoo recursion."
 		       (line-end-position)
 		       nil))
 
+(defun runo-analyze-line-point (syllabification &optional meter)
+  "Return analysis on SYLLABIFICATION when it aligns with compiled METER.
+If METER unsupplied use var runo-mitta."
+  (runo-analyze-line syllabification (or meter runo-mitta)))
+
   ""
   (interactive "nLimit?") ;; testing
   (let* ((point (point))
