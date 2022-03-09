@@ -96,7 +96,7 @@
 		   (or lyhyt puolipitkä)))
     (regexp ,runo-kesuura)))
 
-(defvar runo-mitta runo-eeppinen-mitta)
+(defvar runo-mitta nil)
 
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
@@ -139,6 +139,8 @@ SUBSEQUENT used for voodoo recursion."
   (mapcar (lambda (x)
 	    (runo-compiler-dispatch x subsequent))
 	  form))
+
+(setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta))
 
 (defun runo-analyze-line (line sub-meter)
   "Return list of syllable types in LINE on match with SUB-METER."
