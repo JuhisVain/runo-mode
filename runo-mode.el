@@ -249,12 +249,15 @@ SUBSEQUENT used for voodoo recursion."
 	(setf point (+ point (cadr e)))))))
 
 (defun runo-syllabificate-line (line)
-  "Break down string LINE into list of lists of form (string length &optional syllable-length)."
-  (let ((split-line (split-string line (rx word-boundary) t)))
+  "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
+  (let ((split-line (split-string line (rx word-boundary) t))
+	(pos 0))
     (mapcan (lambda (string)
 	      (cond ((string-match "\\w" string)
 		     (mapcar (lambda (syllable)
-			       (list syllable (length syllable)
+			       (list syllable
+				     (list pos
+					   (setf pos (+ pos (length syllable))))
 				     (runo-syllable-length syllable)))
 			     (runo-syllabificate string)))
 		    (t (list (list string (length string))))))
