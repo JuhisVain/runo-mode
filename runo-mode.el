@@ -219,6 +219,13 @@ SUBSEQUENT used for voodoo recursion."
   (cl-member-if 'cddr line))
 
 (defun runo-paint-line (limit)
+(defun runo-clear-line ()
+  "Remove text properties from line at point."
+  (interactive)
+  (set-text-properties (line-beginning-position)
+		       (line-end-position)
+		       nil))
+
   ""
   (interactive "nLimit?") ;; testing
   (let* ((point (point))
