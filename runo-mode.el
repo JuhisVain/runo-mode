@@ -39,16 +39,34 @@
 (defconst runo-kesuura ; word stop
   "\\(?:[,.:; ]\\)\\|\\(?:\\W*$\\)")
 
-(defun runo-syllable-color (syllable-type index)
+(defun runo-syllable-color (syllable-type metron-type index)
   ""
-  (list :background
-	(cl-case syllable-type
-	  (pitkä (nth (mod index 2) '("#ff8e8a" "#ffbfbd")))
-	  (puolipitkä (nth (mod index 2) '("#f1b476" "#f5cda4")))
-	  (lyhyt (nth (mod index 2) '("#f4eb86" "#f8f3b5"))))))
+  (if (null syllable-type)
+      (list :background "#ffe8e8")
+    (let ((metron-type (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
+      (list
+       :foreground
+       (pcase (list syllable-type metron-type (mod index 2))
+	 (`(pitkä "dak" 0) "#002b00")
+	 (`(pitkä "dak" 1) "#133b13")
+	 (`(puolipitkä "dak" 0) "#153115")
+	 (`(puolipitkä "dak" 1) "#274027")
+	 (`(lyhyt "dak" 0) "#263a26")
+	 (`(lyhyt "dak" 1) "#364936")
 
+	 (`(pitkä "spo" 0) "#000036")
+	 (`(pitkä "spo" 1) "#131345")
+	 (`(puolipitkä "spo" 0) "#15154b")
+	 (`(puolipitkä "spo" 1) "#27274a")
+	 (`(lyhyt "spo" 0) "#242442")
+	 (`(lyhyt "spo" 1) "#343450")
 
-
+	 (`(pitkä "tro" 0) "#290000")
+	 (`(pitkä "tro" 1) "#391313")
+	 (`(puolipitkä "tro" 0) "#311515")
+	 (`(puolipitkä "tro" 1) "#402727")
+	 (`(lyhyt "tro" 0) "#3b2626")
+	 (`(lyhyt "tro" 1) "#4a3636"))))))
 
 (defvar runo-eeppinen-mitta
   `(seq ; säe
@@ -194,7 +212,6 @@ SUBSEQUENT used for voodoo recursion."
   "Return list starting from next alphabetical string element in LINE."
   (cl-member-if 'cddr line))
 
-(defun runo-paint-line (limit)
 (defun runo-clear-line ()
   "Remove text properties from line at point."
   (interactive)
@@ -207,6 +224,37 @@ SUBSEQUENT used for voodoo recursion."
 If METER unsupplied use var runo-mitta."
   (runo-analyze-line syllabification (or meter runo-mitta)))
 
+(defun runo-paint-line ()
+  ""
+  (interactive)
+  (runo-clear-line)
+  (let* ((syllabification (runo-syllabificate-line
+			   (buffer-substring (line-beginning-position)
+					     (line-end-position))))
+	 (analysis (runo-analyze-line-point syllabification))
+	 (position (line-beginning-position)))
+    (when analysis
+      (cl-loop for a-element in analysis
+	       with metron-name = nil
+	       with index = -1
+	       do (pcase a-element
+		    (`(:name ,metron)
+		     (setf metron-name metron))
+		    (`(,- ,limits . ,syllable-type)
+		     (put-text-property
+		      (+ position (car limits))
+		      (+ position (cadr limits))
+		      'font-lock-face
+		      (runo-syllable-color (car syllable-type) metron-name
+					   (setf index (1+ index)))))
+		    )))))
+
+(defun wtf ()
+  ""
+  (interactive)
+  (message "%s" (text-properties-at (point))))
+
+'(defun runo-paint-line (limit)
   ""
   (interactive "nLimit?") ;; testing
   (let* ((point (point))
