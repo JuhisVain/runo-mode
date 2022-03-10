@@ -265,7 +265,9 @@ If METER unsupplied use var runo-mitta."
 					   (setf pos (+ pos (length syllable))))
 				     (runo-syllable-length syllable)))
 			     (runo-syllabificate string)))
-		    (t (list (list string (length string))))))
+		    (t (list (list string
+				   (list pos
+					 (setf pos (+ pos (length string)))))))))
 	    split-line)))
 
 (defun runo-syllabificate (word &optional syl-index)
