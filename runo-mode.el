@@ -231,7 +231,9 @@ If METER unsupplied use var runo-mitta."
 
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
-  (let ((split-line (split-string line (rx word-boundary) t))
+  (let ((split-line (append
+		     (split-string line (rx word-boundary) t)
+		     (list "\n")))
 	(pos 0))
     (mapcan (lambda (string)
 	      (cond ((string-match "\\w" string)
