@@ -119,7 +119,6 @@ SUBSEQUENT used for voodoo recursion."
 	 (cons element subsequent)
        (list element subsequent)))))
 
-
 ;;'(a b c d e) -> (a (b (c (d (e . nil)))))
 (defun runo-compile-sequence (form old-subs)
   "Compile linear sequence based on FORM.
@@ -182,31 +181,8 @@ SUBSEQUENT used for voodoo recursion."
 ;;; An example:
 '(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!\n")
 		    (runo-compiler-dispatch runo-eeppinen-mitta))
-;; --> Pretty good
-'((:name spondee-1)
-  ("Pas" 3 puolipitkä)
-  ("kaa" 3 pitkä)
-  (:name daktyyli-2)
-  ("Saa" 3 pitkä)
-  ("ta" 2 lyhyt)
-  ("na" 2 lyhyt)
-  (:name daktyyli-3)
-  ("Ei" 2 pitkä)
-  ("ju" 2 lyhyt)
-  ("ma" 2 lyhyt)
-  (:name daktyyli-4)
-  ("lau" 3 pitkä)
-  ("ta" 2 lyhyt)
-  ("nyt" 3 puolipitkä)
-  (:name daktyyli-5)
-  ("taas" 4 pitkä)
-  ("vit" 3 puolipitkä)
-  ("tu" 2 lyhyt)
-  (:name spondee-6)
-  ("Per" 3 puolipitkä)
-  ("kel" 3 puolipitkä)
-  ("'!\n" 2)
-  :end)
+
+
 
 (defun runo-meter-count (compiled-meter)
   "Count primary elements in COMPILED-METER tree."
