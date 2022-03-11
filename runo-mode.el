@@ -272,27 +272,59 @@ If METER unsupplied use var runo-mitta."
 	(pos 0))
     (mapcan (lambda (string)
 	      (cond ((string-match "\\w" string)
-		     (mapcar (lambda (syllable)
-			       (list syllable
-				     (list pos
-					   (setf pos (+ pos (length syllable))))
-				     (runo-syllable-length syllable)))
+		     (mapcar (lambda (syllable-element)
+			       '(list syllable
+				      (list pos
+					    (setf pos (+ pos (length syllable))))
+				      (runo-syllable-length syllable))
+			       (cl-list* (car syllable-element)
+					 (list pos
+					       (setf pos (+ pos
+							    (length (car syllable-element)))))
+					 (cdr syllable-element)))
 			     (runo-syllabificate string)))
 		    (t (list (list string
 				   (list pos
 					 (setf pos (+ pos (length string)))))))))
 	    split-line)))
 
+(defvar *runo-custom-syllabification* (make-hash-table :test 'equal))
+
+(defun runo-defsyl (word syllables &optional attributes)
+  "Define a custom syllabification for WORD based on list SYLLABLES.
+ATTRIBUTES appended onto syllable-elements."
+  (puthash word
+	   (cl-mapcar (lambda (syl at)
+			(cons syl
+			      (cond ((null at)
+				     (list (runo-syllable-length syl)))
+				    ((listp at)
+				     at)
+				    (t
+				     (list at)))))
+		      syllables
+		      (or attributes
+			  (make-list (length syllables) nil)))
+	   *runo-custom-syllabification*))
+
+(runo-defsyl "kuolinnuotiot" '("kuo" "lin" "nuo" "ti" "ot")) ; compound word diphtong "nuo"
+(runo-defsyl "Peleun" '("Pel" "eun")) ; strange syllabification
+(runo-defsyl "Hadeen" '("Ha" "deen") '(pitkä pitkä)) ; syllable length differs from written form
+(runo-defsyl "Here" '("He" "re") '(pitkä pitkä))
+
 (defun runo-syllabificate (word &optional syl-index)
-  "Return list of finnish syllables in a single WORD.
-SYL-INDEX will hold index of current syllable."
-  (unless (zerop (length word))
-    (let* ((syl-index (or syl-index 0))
-	   (core-count (runo-tavu-ydin word syl-index))
-	   (end-count (runo-tavu-loppu (cl-subseq word core-count)))
-	   (end (+ core-count end-count)))
-      (cons (cl-subseq word 0 end)
-	    (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))
+  "Return list of finnish syllable-elements (string . attributes)
+in a single WORD.  SYL-INDEX will hold index of current syllable."
+  (let ((custom-syllables (gethash word *runo-custom-syllabification*)))
+    (cond ((zerop (length word)) nil)
+	  (custom-syllables custom-syllables)
+	  (t (let* ((syl-index (or syl-index 0))
+		    (core-count (runo-tavu-ydin word syl-index))
+		    (end-count (runo-tavu-loppu (cl-subseq word core-count)))
+		    (end (+ core-count end-count))
+		    (syllable (cl-subseq word 0 end)))
+	       (cons (list syllable (runo-syllable-length syllable))
+		     (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))))
 
 (defun runo-syllable-length (syllable)
   "Return symbol designating SYLLABLE's length."
