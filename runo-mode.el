@@ -42,31 +42,18 @@
 (defun runo-syllable-color (syllable-type metron-type index)
   ""
   (if (null syllable-type)
-      (list :background "#ffe8e8")
+      (list :background "#e1e1ff")
     (let ((metron-type (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
-      (list
-       :foreground
-       (pcase (list syllable-type metron-type (mod index 2))
-	 (`(pitkä "dak" 0) "#002b00")
-	 (`(pitkä "dak" 1) "#133b13")
-	 (`(puolipitkä "dak" 0) "#153115")
-	 (`(puolipitkä "dak" 1) "#274027")
-	 (`(lyhyt "dak" 0) "#263a26")
-	 (`(lyhyt "dak" 1) "#364936")
-
-	 (`(pitkä "spo" 0) "#000036")
-	 (`(pitkä "spo" 1) "#131345")
-	 (`(puolipitkä "spo" 0) "#15154b")
-	 (`(puolipitkä "spo" 1) "#27274a")
-	 (`(lyhyt "spo" 0) "#242442")
-	 (`(lyhyt "spo" 1) "#343450")
-
-	 (`(pitkä "tro" 0) "#290000")
-	 (`(pitkä "tro" 1) "#391313")
-	 (`(puolipitkä "tro" 0) "#311515")
-	 (`(puolipitkä "tro" 1) "#402727")
-	 (`(lyhyt "tro" 0) "#3b2626")
-	 (`(lyhyt "tro" 1) "#4a3636"))))))
+      (list :background
+	    (pcase metron-type
+	      ("dak" "#ffe1e1")
+	      ("spo" "#ffffe1")
+	      ("tro" "#e1ffe1"))
+	    :foreground
+	    (pcase syllable-type
+	      ('pitkä "#000000")
+	      ('puolipitkä "#3b3b3b")
+	      ('lyhyt "#777777"))))))
 
 (defvar runo-eeppinen-mitta
   `(seq ; säe
