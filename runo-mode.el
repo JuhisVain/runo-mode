@@ -37,7 +37,7 @@
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
 (defconst runo-kesuura ; word stop
-  "\\(?:[,.:; ]\\)\\|\\(?:\\W*$\\)")
+  "\\(?:[,.:; \n]\\)")
 
 (defun runo-syllable-color (syllable-type metron-type index)
   ""
