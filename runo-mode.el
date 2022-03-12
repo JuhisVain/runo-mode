@@ -264,6 +264,31 @@ If METER unsupplied use var runo-mitta."
 	  (setf syllable-index (1+ syllable-index)))
 	(setf point (+ point (cadr e)))))))
 
+(defun runo-syllable-length (syllable)
+  "Return symbol designating SYLLABLE's length."
+  (cond ((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (regex runo-vowel)
+			   eol)
+		       syllable)
+	 'lyhyt)
+	((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (regex runo-vowel)
+			   (0+ (regex runo-consonant))
+			   eol)
+		       syllable)
+	 'puolipitkä)
+	((string-match (rx bol
+			   (0+ (regex runo-consonant))
+			   (or (regex runo-long-vowel)
+			       (regex runo-diphtong)
+			       (regex runo-beginning-diphtong))
+			   (0+ (regex runo-consonant))
+			   eol)
+		       syllable)
+	 'pitkä)))
+
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
   (let ((split-line (append
@@ -326,30 +351,7 @@ in a single WORD.  SYL-INDEX will hold index of current syllable."
 	       (cons (list syllable (runo-syllable-length syllable))
 		     (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))))
 
-(defun runo-syllable-length (syllable)
-  "Return symbol designating SYLLABLE's length."
-  (cond ((string-match (rx bol
-			   (0+ (regex runo-consonant))
-			   (regex runo-vowel)
-			   eol)
-		       syllable)
-	 'lyhyt)
-	((string-match (rx bol
-			   (0+ (regex runo-consonant))
-			   (regex runo-vowel)
-			   (0+ (regex runo-consonant))
-			   eol)
-		       syllable)
-	 'puolipitkä)
-	((string-match (rx bol
-			   (0+ (regex runo-consonant))
-			   (or (regex runo-long-vowel)
-			       (regex runo-diphtong)
-			       (regex runo-beginning-diphtong))
-			   (0+ (regex runo-consonant))
-			   eol)
-		       syllable)
-	 'pitkä)))
+
 
 ;; http://www.kielitoimistonohjepankki.fi/ohje/153
 (defun runo-tavu-ydin (word syllable-index)
