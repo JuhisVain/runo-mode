@@ -37,23 +37,25 @@
   "[rlmn]\\(?1:[bcdfghjklmnpqrstvwxz]\\)\\1")
 
 (defconst runo-kesuura ; word stop
-  "\\(?:[,.:; \n]\\)")
+  "\\(?:[,.?!:; \n]\\)")
 
 (defun runo-syllable-color (syllable-type metron-type index)
   ""
-  (if (null syllable-type)
+  (if (null syllable-type) ; paint regexp matches blue
       (list :background "#e1e1ff")
     (let ((metron-type (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
-      (list :background
-	    (pcase metron-type
-	      ("dak" "#ffe1e1")
-	      ("spo" "#ffffe1")
-	      ("tro" "#e1ffe1"))
-	    :foreground
-	    (pcase syllable-type
-	      ('pitkä "#000000")
-	      ('puolipitkä "#3b3b3b")
-	      ('lyhyt "#777777"))))))
+      (cl-list*
+       :foreground
+       (pcase syllable-type
+	 ('pitkä "#000000")
+	 ('puolipitkä "#3b3b3b")
+	 ('lyhyt "#777777"))
+       (when metron-type ; if metron analysis was ok
+	 (list :background
+	       (pcase metron-type
+		 ("dak" "#ffe1e1")
+		 ("spo" "#ffffe1")
+		 ("tro" "#e1ffe1"))))))))
 
 (defvar runo-eeppinen-mitta
   `(seq ; säe
@@ -144,7 +146,8 @@ SUBSEQUENT used for voodoo recursion."
 	    (runo-compiler-dispatch x subsequent))
 	  form))
 
-(setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta))
+(progn (setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta))
+       nil)
 
 (defun runo-analyze-line (line sub-meter)
   "Return list of syllable types in LINE on match with SUB-METER."
@@ -220,21 +223,33 @@ If METER unsupplied use var runo-mitta."
 					     (line-end-position))))
 	 (analysis (runo-analyze-line-point syllabification))
 	 (position (line-beginning-position)))
-    (when analysis
-      (cl-loop for a-element in analysis
-	       with metron-name = nil
-	       with index = -1
-	       do (pcase a-element
-		    (`(:name ,metron)
-		     (setf metron-name metron))
-		    (`(,- ,limits . ,syllable-type)
-		     (put-text-property
-		      (+ position (car limits))
-		      (+ position (cadr limits))
-		      'font-lock-face
-		      (runo-syllable-color (car syllable-type) metron-name
-					   (setf index (1+ index)))))
-		    )))))
+    (setf foo syllabification)
+    (cond (analysis
+	   (cl-loop for a-element in analysis
+		    with metron-name = nil
+		    with index = -1
+		    do (pcase a-element
+			 (`(:name ,metron)
+			  (setf metron-name metron))
+			 (`(,- ,limits . ,syllable-type)
+			  (put-text-property
+			   (+ position (car limits))
+			   (+ position (cadr limits))
+			   'font-lock-face
+			   (runo-syllable-color (car syllable-type) metron-name
+						(setf index (1+ index)))))
+			 )))
+	  (t ; analysis fail
+	   (cl-loop for element in syllabification
+		    with index = -1
+		    do (pcase element
+			 (`(,- ,limits . ,syllable-type)
+			  (put-text-property
+			   (+ position (car limits))
+			   (+ position (cadr limits))
+			   'font-lock-face
+			   (runo-syllable-color (car syllable-type) nil
+						(setf index (1+ index)))))))))))
 
 (defun wtf ()
   ""
