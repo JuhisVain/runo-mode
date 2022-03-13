@@ -43,16 +43,17 @@
   ""
   (if (null syllable-type) ; paint regexp matches blue
       (list :background "#e1e1ff")
-    (let ((metron-type (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
-      (cl-list*
-       :foreground
-       (pcase syllable-type
-	 ('pitkä "#000000")
-	 ('puolipitkä "#3b3b3b")
-	 ('lyhyt "#777777"))
+    (let ((metron-name (when metron-type
+			 (cl-subseq (symbol-name metron-type) 0 3)))) ; dak spo tro
+      (append
+       (list :foreground
+	     (pcase syllable-type
+	       ('pitkä "#000000")
+	       ('puolipitkä "#3b3b3b")
+	       ('lyhyt "#777777")))
        (when metron-type ; if metron analysis was ok
 	 (list :background
-	       (pcase metron-type
+	       (pcase metron-name
 		 ("dak" "#ffe1e1")
 		 ("spo" "#ffffe1")
 		 ("tro" "#e1ffe1"))))))))
