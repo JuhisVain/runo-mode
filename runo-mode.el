@@ -310,8 +310,9 @@ If METER unsupplied use var runo-mitta."
 		     (split-string
     ;;;; split-string with "\\b" will not work on single quote when used interactive
     ;;;; Except that in some buffers it is split correctly OLOLOLOLOLOLOLOOLOLOOOOLO
-		      ;;line
-		      (replace-regexp-in-string "'" "¨" line)
+    ;;;; update: Now it's gone LOLOLOLOOLOLOLOLOLOLOLOLOLO
+		      line
+		      ;;(replace-regexp-in-string "'" "¨" line)
 		      (rx word-boundary) t)
 		     (list "\n")))
 	(pos 0))
