@@ -256,29 +256,6 @@ If METER unsupplied use var runo-mitta."
   (interactive)
   (message "%s" (text-properties-at (point))))
 
-'(defun runo-paint-line (limit)
-  ""
-  (interactive "nLimit?") ;; testing
-  (let* ((point (point))
-	 (line (progn (re-search-forward (rx bol (regex ".*") eol) limit 'GOTO-END)
-		      (match-string 0)))
-	 (elements (runo-syllabificate-line line))
-	 (syllable-index 0))
-    (dolist (e elements)
-      (let ((syllable-length (caddr e)))
-	(when syllable-length
-	  (put-text-property point
-			     (+ point (cadr e))
-			     'font-lock-face
-			     ;;(cl-case syllable-length
-			       ;;(pitkä '(:background "red"))
-			       ;;(puolipitkä '(:background "yellow"))
-			       ;;(lyhyt '(:background "green")))
-			     (runo-syllable-color syllable-length syllable-index)
-			     )
-	  (setf syllable-index (1+ syllable-index)))
-	(setf point (+ point (cadr e)))))))
-
 (defun runo-syllable-length (syllable)
   "Return symbol designating SYLLABLE's length."
   (cond ((string-match (rx bol
