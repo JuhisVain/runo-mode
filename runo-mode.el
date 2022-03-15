@@ -151,11 +151,22 @@ SUBSEQUENT used for voodoo recursion."
        nil)
 
 (defun runo-analyze-line (line sub-meter)
-  "Return list of syllable types in LINE on match with SUB-METER."
+  "Return list of syllable types in LINE on match with SUB-METER.
+Annotated with named-sequence names and ending with :end on success,
+:incomplete when missing stuff or :extra when too much stuff."
+  ;;TODO: Will still return NIL if completely unacceptable!!
   (catch 'FOUND
-    (when (and (null sub-meter)
-	       (null (cl-member-if 'cddr line)))
-      (throw 'FOUND (list :end)))
+    (cond ((and (null sub-meter)
+		(null (cl-member-if 'cddr line)))
+	   (throw 'FOUND (list :end)))
+	  ((and sub-meter
+		(not (equal (caar sub-meter)
+			    'regexp))
+		(null (cl-member-if 'cddr line)))
+	   (throw 'FOUND (list :incomplete)))
+	  ((and (null sub-meter)
+		(cl-member-if 'cddr line))
+	   (throw 'FOUND (list :extra))))
     (let ((next-syllable (runo-next-syllable line)))
       (dolist (option sub-meter)
 	(let* ((found
@@ -172,8 +183,10 @@ SUBSEQUENT used for voodoo recursion."
 	  (when found
 	    (let ((found-rest
 		   (apply 'runo-analyze-line
-			  (pcase (or (and (listp found) (car found)) ; essentially get name
-				     (and (eq found 'rx-match) 'rx-match)) ; regexp match?
+			  ;; essentially get name:
+			  (pcase (or (and (listp found) (car found))
+				     ;; regexp match?
+				     (and (eq found 'rx-match) 'rx-match))
 			    (:name (list line (cddr option)))
 			    ('rx-match
 			     (list (cdr next-syllable)
@@ -181,15 +194,18 @@ SUBSEQUENT used for voodoo recursion."
 			    (- (list (cdr next-syllable) (cdr option)))))))
 	      (when found-rest
 		(throw 'FOUND
-		       (cond ((eq found 'rx-match) ; if regexp matches, append matched string
+		       ;; if regexp matches, append matched string
+		       (cond ((eq found 'rx-match)
 			      (cons (car line) found-rest))
 			     ((and (listp found) (car found))
 			      (cons found found-rest))
 			     (t (cons (car next-syllable) found-rest))))))))))))
 
 ;;; An example:
-'(runo-analyze-line (runo-syllabificate-line "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!\n")
-		    (runo-compiler-dispatch runo-eeppinen-mitta))
+'(runo-analyze-line
+  (runo-syllabificate-line
+   "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
+  runo-mitta)
 
 
 
