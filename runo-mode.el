@@ -283,15 +283,7 @@ If METER unsupplied use var runo-mitta."
 
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
-  (let ((split-line (append
-		     (split-string
-    ;;;; split-string with "\\b" will not work on single quote when used interactive
-    ;;;; Except that in some buffers it is split correctly OLOLOLOLOLOLOLOOLOLOOOOLO
-    ;;;; update: Now it's gone LOLOLOLOOLOLOLOLOLOLOLOLOLO
-		      line
-		      ;;(replace-regexp-in-string "'" "¨" line)
-		      (rx word-boundary) t)
-		     (list "\n")))
+  (let ((split-line (append (split-string line (rx word-boundary) t) (list "\n")))
 	(pos 0))
     (mapcan (lambda (string)
 	      (cond ((string-match "\\w" string)
