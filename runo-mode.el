@@ -58,6 +58,18 @@
 		 ("spo" "#ffffe1")
 		 ("tro" "#e1ffe1"))))))))
 
+(defun runo-underline-incomplete (start end)
+  ""
+  (add-face-text-property
+   start end
+   '(:underline (:color "#804000" :style wave))))
+
+(defun runo-underline-extra (start end)
+  ""
+  (add-face-text-property
+   start end
+   '(:strike-through "#880000")))
+
 (defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
@@ -251,7 +263,7 @@ If METER unsupplied use var runo-mitta."
 			  (put-text-property
 			   (+ position (car limits))
 			   (+ position (cadr limits))
-			   'font-lock-face
+			   'face
 			   (runo-syllable-color (car syllable-type) metron-name
 						(setf index (1+ index)))))
 			 )))
@@ -263,14 +275,35 @@ If METER unsupplied use var runo-mitta."
 			  (put-text-property
 			   (+ position (car limits))
 			   (+ position (cadr limits))
-			   'font-lock-face
+			   'face
 			   (runo-syllable-color (car syllable-type) nil
-						(setf index (1+ index)))))))))))
+						(setf index (1+ index)))))))))
+    (let ((last-2 (last analysis 2)))
+      (pcase (cadr last-2)
+	(:extra (runo-underline-extra (+ position (cadadr (car last-2)))
+				      (line-end-position)))
+	(:incomplete (runo-underline-incomplete (line-beginning-position)
+						(line-end-position)))))))
 
+
+;;; A bit of testing:
 (defun wtf ()
   ""
   (interactive)
   (message "%s" (text-properties-at (point))))
+
+(defun setprop (prop)
+  ""
+  (interactive "xProp?")
+  (set-text-properties (line-beginning-position)
+		       (line-end-position)
+		       prop))
+(defun addprop (prop)
+  ""
+  (interactive "xProp?")
+  (add-text-properties (line-beginning-position)
+		       (line-end-position)
+		       prop))
 
 (defun runo-syllable-length (syllable)
   "Return symbol designating SYLLABLE's length."
