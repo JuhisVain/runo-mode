@@ -337,6 +337,43 @@ If METER unsupplied use var runo-mitta."
 
 (defvar *runo-custom-syllabification* (make-hash-table :test 'equal))
 
+(defun runo-format-syllabification (word)
+  "Produce syllabificated string of WORD where syllable length designated by -."
+  ;;;(runo-format-syllabification "noutavanuolta")
+  ;;;>"nou---ta-va-nu-ol--ta-"
+  (apply 'concat
+	 (mapcar (lambda (syllable)
+		   (concat (car syllable)
+			   (pcase (cadr syllable)
+			     ('pitkä "---")
+			     ('puolipitkä "--")
+			     ('lyhyt "-"))))
+		 (runo-syllabificate word))))
+
+(defun runo-deformat-syllabification (string)
+  "Produce standard syllabification from syllable-formatted STRING."
+  (cl-loop for (syl length) on (split-string string (rx word-boundary) t) by 'cddr
+	   collecting (list syl (pcase length
+				  ("---" 'pitkä)
+				  ("--" 'puolipitkä)
+				  ("-" 'lyhyt)))))
+
+(defun runo-custom-syllabification (syllabification)
+  "Define SYLLABIFICATION for word under point."
+  (interactive
+   (save-excursion
+     (let ((point-word (buffer-substring-no-properties
+			(progn (backward-word) (point))
+			(progn (forward-word) (point)))))
+       (list (read-from-minibuffer
+	      (format "Syllabification for word \"%s\": " point-word)
+	      (runo-format-syllabification point-word))))))
+  (let* ((new-syls (runo-deformat-syllabification syllabification))
+	 (syllables (mapcar 'car new-syls)))
+    (runo-defsyl (apply 'concat syllables)
+		 syllables
+		 (mapcar 'cadr new-syls))))
+
 (defun runo-defsyl (word syllables &optional attributes)
   "Define a custom syllabification for WORD based on list SYLLABLES.
 ATTRIBUTES appended onto syllable-elements."
