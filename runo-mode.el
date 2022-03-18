@@ -214,20 +214,6 @@ Annotated with named-sequence names and ending with :end on success,
 			      (cons found found-rest))
 			     (t (cons (car next-syllable) found-rest))))))))))))
 
-;;; An example:
-'(runo-analyze-line
-  (runo-syllabificate-line
-   "Paskaa, Saatana! Ei jumalauta nyt taas vittu Perkel'!")
-  runo-mitta)
-
-
-
-(defun runo-meter-count (compiled-meter)
-  "Count primary elements in COMPILED-METER tree."
-  (if compiled-meter
-      (1+ (apply '+ (mapcar 'runo-meter-count (cdr compiled-meter))))
-    0))
-
 (defun runo-next-syllable (line)
   "Return list starting from next alphabetical string element in LINE."
   (cl-member-if 'cddr line))
@@ -333,7 +319,7 @@ If METER unsupplied use var runo-mitta."
 
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
-  (let ((split-line (append (split-string line (rx word-boundary) t)))
+  (let ((split-line (split-string line (rx word-boundary) t))
 	(pos 0))
     (mapcan (lambda (string)
 	      (cond ((string-match "\\w" string)
