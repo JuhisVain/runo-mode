@@ -352,6 +352,12 @@ If METER unsupplied use var runo-mitta."
 
 (defun runo-deformat-syllabification (string)
   "Produce standard syllabification from syllable-formatted STRING."
+  ;;;(runo-deformat-syllabification "nou---ta-va-nuol---ta-")
+  ;;;>(("nou" pitkä)
+  ;;;  ("ta" lyhyt)
+  ;;;  ("va" lyhyt)
+  ;;;  ("nuol" pitkä)
+  ;;;  ("ta" lyhyt))
   (cl-loop for (syl length) on (split-string string (rx word-boundary) t) by 'cddr
 	   collecting (list syl (pcase length
 				  ("---" 'pitkä)
