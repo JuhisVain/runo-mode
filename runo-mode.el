@@ -201,9 +201,10 @@ Annotated with named-sequence names and ending with :end on success,
 				     (and (eq found 'rx-match) 'rx-match))
 			    (:name (list line (cddr option)))
 			    ('rx-match
-			     (list (cdr next-syllable)
+			     (list (cdr line) ; consume one line element
 				   (cdr (member option sub-meter))))
-			    (- (list (cdr next-syllable) (cdr option)))))))
+			    (- (list (cdr next-syllable) ; consume line until next-syllable
+				     (cdr option)))))))
 	      (when found-rest
 		(throw 'FOUND
 		       ;; if regexp matches, append matched string
