@@ -496,8 +496,9 @@ iskien peitsellään tai jänteelt' ampuen nuolen.\"")
   ;;;;(set-syntax-table runo-mode-syntax-table)
   (setq major-mode 'runo-mode)
   (setq mode-name "RUNO")
+  (make-local-variable 'post-self-insert-hook)
+  (push 'runo-paint-line post-self-insert-hook)
   (run-hooks 'runo-mode-hook))
-
 
 (provide 'runo-mode)
 ;;; runo-mode.el ends here
