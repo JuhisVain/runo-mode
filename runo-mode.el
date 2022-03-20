@@ -426,15 +426,17 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 		     (or (regex runo-diphtong)
 			 (regex runo-beginning-diphtong)
 			 (regex runo-long-vowel)
-			 (regex runo-vowel))))
+			 (regex runo-vowel)
+			 eol))) ; a word with no vowels
 		(t
 		 (rx (0+ (regex runo-consonant))
 		     (or (regex runo-diphtong)
 			 (regex runo-long-vowel)
-			 (regex runo-vowel)))))
+			 (regex runo-vowel)
+			 eol))))
 	  word)
 	 (cadr (match-data)))
-	(t (error "No syllable core vowel found in \"%s\"" word))))
+	(t (error "Strange word \"%s\"" word))))
 
 (defun runo-tavu-loppu (word)
   "Return count of consonants at end of syllable core, which has already been cut form WORD."
