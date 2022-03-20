@@ -488,6 +488,15 @@ iskien peitsellään tai jänteelt' ampuen nuolen.\"")
       (push (runo-syllabificate word) syllables))
     (reverse syllables)))
 
+(defun runo-buffer-repaint ()
+  "Repaint current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (< (point) (point-max))
+      (runo-paint-line)
+      (forward-line))))
+
 (defun runo-mode ()
   "Yolo."
   (interactive)
