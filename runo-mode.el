@@ -166,7 +166,10 @@ SUBSEQUENT used for voodoo recursion."
   "Return list of syllable types in LINE on match with SUB-METER.
 Annotated with named-sequence names and ending with :end on success,
 :incomplete when missing stuff or :extra when too much stuff."
-  ;;TODO: Will still return NIL if completely unacceptable!!
+  ;;; TODO:
+  ;; "poialtaan hymysuin hän maljan tarjotun otti."
+  ;; will be analyzed as (spo1 dak2 dak3 dak4 dak5 :incomplete)
+  ;; instead of (spo1 dak2 spo3 spo4 dak5 tro6)
   (catch 'FOUND
     (cond ((and (null sub-meter)
 		(null (cl-member-if 'cddr line)))
