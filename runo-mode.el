@@ -8,7 +8,7 @@
 (defvar runo-mode-hook nil)
 
 (defvar runo-mode-map
-  (let ((map (make-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-j" 'newline-and-indent) ;; example
     map)
   "Keymap for runo-mode.")
@@ -415,8 +415,6 @@ in a single WORD.  SYL-INDEX will hold index of current syllable."
 		    (syllable (cl-subseq word 0 end)))
 	       (cons (list syllable (runo-syllable-length syllable))
 		     (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))))
-
-
 
 ;; http://www.kielitoimistonohjepankki.fi/ohje/153
 (defun runo-tavu-ydin (word syllable-index)
