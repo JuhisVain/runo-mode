@@ -166,10 +166,6 @@ SUBSEQUENT used for voodoo recursion."
   "Return list of syllable types in LINE on match with SUB-METER.
 Annotated with named-sequence names and ending with :end on success,
 :incomplete when missing stuff or :extra when too much stuff."
-  ;;; TODO:
-  ;; "poialtaan hymysuin hän maljan tarjotun otti."
-  ;; will be analyzed as (spo1 dak2 dak3 dak4 dak5 :incomplete)
-  ;; instead of (spo1 dak2 spo3 spo4 dak5 tro6)
   (catch 'FOUND
     (cond ((and (null sub-meter)
 		(null (cl-member-if 'cddr line)))
@@ -182,7 +178,8 @@ Annotated with named-sequence names and ending with :end on success,
 	  ((and (null sub-meter)
 		(cl-member-if 'cddr line))
 	   (throw 'FOUND (list :extra))))
-    (let ((next-syllable (runo-next-syllable line)))
+    (let ((next-syllable (runo-next-syllable line))
+	  (return nil))
       (dolist (option sub-meter)
 	(let* ((found
 		(pcase option
@@ -206,16 +203,23 @@ Annotated with named-sequence names and ending with :end on success,
 			    ('rx-match
 			     (list (cdr line) ; consume one line element
 				   (cdr (member option sub-meter))))
-			    (- (list (cdr next-syllable) ; consume line until next-syllable
+			    ;; consume line until next-syllable:
+			    (- (list (cdr next-syllable)
 				     (cdr option)))))))
 	      (when found-rest
-		(throw 'FOUND
-		       ;; if regexp matches, append matched string
-		       (cond ((eq found 'rx-match)
-			      (cons (car line) found-rest))
-			     ((and (listp found) (car found))
-			      (cons found found-rest))
-			     (t (cons (car next-syllable) found-rest))))))))))))
+		(setf return (cond ((eq found 'rx-match)
+				    (cons (car line) found-rest))
+				   ((and (listp found) (car found))
+				    (cons found found-rest))
+				   (t (cons (car next-syllable) found-rest))))
+		; if we're ready there's no need to search any more:
+		(when (eq (car (last found-rest))
+			  :end)
+		  (throw 'FOUND return)))))))
+      ;; On failure to acquire :end
+      ;; return either :incomplete or :extra analysis
+      ;; or fail analysis with nil
+      return)))
 
 (defun runo-next-syllable (line)
   "Return list starting from next alphabetical string element in LINE."
