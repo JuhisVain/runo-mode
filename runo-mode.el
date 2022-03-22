@@ -469,31 +469,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
    ((string-match (rx (1+ (regex runo-consonant))
 		      (regex runo-vowel))
 		  word)
-    (- (cadr (match-data)) 2)) ;; Drop consonant & vowel
-   ))
-
-(defun test ()
-  "Test syllabification."
-  (let ((poetry "
-\"Vait ole, mieletön, lunnaistas älä haastele mulle.
-Koittamaton kun viel' oli Patroklon tuhopäivä,
-heltyen helpommin minä iliolaisia säästin,
-vangiten mont' elävältä ja kauas kaupata antain;
-nytp' ei kuoloa ainoakaan ole karttava, jonka
-tuo kedol' Ilionin joku kuoloton kätteni valtaan
-sen asujoist', ei semminkään Priamon oma poika.
-Kuollos, ystävä, siis sinä myös! Älä ruikuta suotta!
-Kuolihan Patrokloskin, vaikk' urohomp' oli paljon.
-Katso'os, kuink' olen itse mä sankari sorja ja uljas,
-korkea mulla on taatto ja kuoloton kantaja kallis;
-vaan mua vartoelee toki kuolo ja mahtava Moira.
-Aamu se joutuva on tai ehtoo tai sydänpäivä,
-jolloin hengen vie joku multakin kamppaelussa
-iskien peitsellään tai jänteelt' ampuen nuolen.\"")
-	(syllables nil))
-    (dolist (word (split-string poetry "\\W" t))
-      (push (runo-syllabificate word) syllables))
-    (reverse syllables)))
+    (- (cadr (match-data)) 2)))) ;; Drop consonant & vowel
 
 (defun runo-buffer-repaint ()
   "Repaint current buffer."
