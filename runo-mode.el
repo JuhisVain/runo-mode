@@ -201,13 +201,14 @@ SUBSEQUENT used for voodoo recursion."
     (`(or . ,options)
      (runo-compile-options options subsequent))
     (`(regexp ,rx)
-     (list 'regexp rx))
+     (list 'regexp rx)) ;; TODO: must append subsequent
     (`(named-seq ,name . ,sequence)
      (let ((rest (runo-compile-sequence sequence subsequent)))
        (if (and (listp rest) (listp (car rest)))
 	   (cl-list* :name name rest)
 	 (list :name name rest))))
     (element ; mamma mia
+     ;; TODO: Is this ever not a list? should be no different to regexp form?
      (if (and (listp subsequent)
 	      (listp (car subsequent)))
 	 (cons element subsequent)
