@@ -116,6 +116,80 @@
 		   (or lyhyt puolipitkä)))
     (regexp ,runo-kesuura)))
 
+(defvar runo-eleginen-distikon
+  `(seq (or (named-seq daktyyli-1
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-1
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(or (named-seq daktyyli-2
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-2
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(or (named-seq daktyyli-3
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-3
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(or (named-seq daktyyli-4
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-4
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(named-seq daktyyli-5
+		   (or pitkä puolipitkä)
+		   (or lyhyt puolipitkä)
+		   (or lyhyt puolipitkä))
+	(or (named-seq trokee-6
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-6
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	;;(regexp ,runo-kesuura)  ;; This is a line change and will produce problems
+	;;REGEXP forms in middle will produce problems
+	(or (named-seq daktyyli-7
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-7
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(or (named-seq daktyyli-8
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-8
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(named-seq trokee-666 ;; todo
+		   (or pitkä puolipitkä))
+	;;(regexp ,runo-kesuura)
+	(or (named-seq daktyyli-9
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	    (named-seq spondee-9
+		       (or pitkä puolipitkä)
+		       (or pitkä puolipitkä)))
+	(named-seq daktyyli-10
+		       (or pitkä puolipitkä)
+		       (or lyhyt puolipitkä)
+		       (or lyhyt puolipitkä))
+	(named-seq trokee-999 ;; todo
+		   (or pitkä puolipitkä))
+	;;(regexp ,runo-kesuura)
+	))
+
 (defvar runo-mitta nil)
 
 (defun runo-compiler-dispatch (form &optional subsequent)
