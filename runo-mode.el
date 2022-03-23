@@ -70,6 +70,8 @@
    start end
    '(:strike-through "#880000")))
 
+(defvar runo-lines-per-meter 1)
+
 (defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
@@ -316,11 +318,19 @@ If METER unsupplied use var runo-mitta."
   ""
   (interactive)
   (runo-clear-line)
-  (let* ((syllabification (runo-syllabificate-line
-			   (buffer-substring-no-properties (line-beginning-position)
-							   (1+ (line-end-position)))))
-	 (analysis (runo-analyze-line-point syllabification))
-	 (position (line-beginning-position)))
+  (let* ((position
+	  (line-beginning-position
+	   (1+ (- (mod (1- (line-number-at-pos))
+		       runo-lines-per-meter)))))
+	 (syllabification
+	  (runo-syllabificate-line
+	   (buffer-substring-no-properties
+	    position
+	    (min (point-max)
+		 (1+ (line-end-position (- runo-lines-per-meter
+					   (mod (1- (line-number-at-pos))
+						runo-lines-per-meter))))))))
+	 (analysis (runo-analyze-line-point syllabification)))
     (cond (analysis
 	   (cl-loop for a-element in analysis
 		    with metron-name = nil
