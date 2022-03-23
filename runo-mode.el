@@ -369,7 +369,7 @@ If METER unsupplied use var runo-mitta."
 (defun wtf ()
   ""
   (interactive)
-  (message "%s" (text-properties-at (point))))
+  (message "Point:%s - %s" (point) (text-properties-at (point))))
 
 (defun setprop (prop)
   ""
