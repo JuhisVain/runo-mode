@@ -157,8 +157,7 @@
 	    (named-seq spondee-6
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	;;(regexp ,runo-kesuura)  ;; This is a line change and will produce problems
-	;;REGEXP forms in middle will produce problems
+	(regexp ,runo-kesuura)
 	(or (named-seq daktyyli-7
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
@@ -175,7 +174,7 @@
 		       (or pitkä puolipitkä)))
 	(named-seq trokee-666 ;; todo
 		   (or pitkä puolipitkä))
-	;;(regexp ,runo-kesuura)
+	(regexp ,runo-kesuura)
 	(or (named-seq daktyyli-9
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
@@ -189,8 +188,7 @@
 		       (or lyhyt puolipitkä))
 	(named-seq trokee-999 ;; todo
 		   (or pitkä puolipitkä))
-	;;(regexp ,runo-kesuura)
-	))
+	(regexp ,runo-kesuura)))
 
 (defvar runo-mitta nil)
 
@@ -202,17 +200,15 @@ SUBSEQUENT used for voodoo recursion."
      (runo-compile-sequence sequence subsequent))
     (`(or . ,options)
      (runo-compile-options options subsequent))
-    (`(regexp ,rx)
-     (list 'regexp rx)) ;; TODO: must append subsequent
     (`(named-seq ,name . ,sequence)
      (let ((rest (runo-compile-sequence sequence subsequent)))
        (if (and (listp rest) (listp (car rest)))
 	   (cl-list* :name name rest)
 	 (list :name name rest))))
-    (element ; mamma mia
-     ;; TODO: Is this ever not a list? should be no different to regexp form?
+    (element
      (if (and (listp subsequent)
-	      (listp (car subsequent)))
+	      (listp (car subsequent))
+	      (not (equal (caar subsequent) 'regexp)))
 	 (cons element subsequent)
        (list element subsequent)))))
 
@@ -245,12 +241,18 @@ Annotated with named-sequence names and ending with :end on success,
 :incomplete when missing stuff or :extra when too much stuff."
   (catch 'FOUND
     (cond ((and (null sub-meter)
-		(null (cl-member-if 'cddr line)))
+	        (null line))
 	   (throw 'FOUND (list :end)))
-	  ((and sub-meter
-		(not (equal (caar sub-meter)
-			    'regexp))
-		(null (cl-member-if 'cddr line)))
+	  ((progn
+	     (or (and sub-meter
+	              (and (null (cl-member-if 'cddr line))
+			   (listp (car sub-meter))
+			   (listp (caar sub-meter))
+			   (not (equal (caaar sub-meter) 'regexp))))
+		 (and sub-meter
+		      (null line)))
+	     (and sub-meter
+		  (null line)))
 	   (throw 'FOUND (list :incomplete)))
 	  ((and (null sub-meter)
 		(cl-member-if 'cddr line))
@@ -260,7 +262,7 @@ Annotated with named-sequence names and ending with :end on success,
       (dolist (option sub-meter)
 	(let* ((found
 		(pcase option
-		  (`(regexp ,rx)
+		  (`((regexp ,rx) . ,rest)
 		   (when (string-match rx (caar line))
 		     'rx-match))
 		  (`(:name ,name . ,section)
@@ -279,7 +281,7 @@ Annotated with named-sequence names and ending with :end on success,
 			    (:name (list line (cddr option)))
 			    ('rx-match
 			     (list (cdr line) ; consume one line element
-				   (cdr (member option sub-meter))))
+				   (cdr option)))
 			    ;; consume line until next-syllable:
 			    (- (list (cdr next-syllable)
 				     (cdr option)))))))
