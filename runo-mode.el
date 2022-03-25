@@ -316,12 +316,16 @@ Annotated with named-sequence names and ending with :end on success,
   "Return list starting from next alphabetical string element in LINE."
   (cl-member-if 'cddr line))
 
-(defun runo-clear-line ()
+(defun runo-clear-line-point ()
   "Remove text properties from line at point."
   (interactive)
   (set-text-properties (line-beginning-position)
 		       (line-end-position)
 		       nil))
+
+(defun runo-clear-area (start end)
+  "Remove text properties from position START to position END."
+  (set-text-properties start end nil))
 
 (defun runo-analyze-line-point (syllabification &optional meter)
   "Return analysis on SYLLABIFICATION when it aligns with compiled METER.
@@ -331,20 +335,23 @@ If METER unsupplied use var runo-mitta."
 (defun runo-paint-line ()
   ""
   (interactive)
-  (runo-clear-line)
   (let* ((position
 	  (line-beginning-position
 	   (1+ (- (mod (1- (line-number-at-pos))
 		       runo-lines-per-meter)))))
+	 (end-position
+	  (min (point-max)
+	       (1+ (line-end-position
+		    (- runo-lines-per-meter
+		       (mod (1- (line-number-at-pos))
+			    runo-lines-per-meter))))))
 	 (syllabification
 	  (runo-syllabificate-line
 	   (buffer-substring-no-properties
 	    position
-	    (min (point-max)
-		 (1+ (line-end-position (- runo-lines-per-meter
-					   (mod (1- (line-number-at-pos))
-						runo-lines-per-meter))))))))
+	    end-position)))
 	 (analysis (runo-analyze-line-point syllabification)))
+    (runo-clear-area position end-position)
     (cond (analysis
 	   (cl-loop for a-element in analysis
 		    with metron-name = nil
