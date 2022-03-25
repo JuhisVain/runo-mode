@@ -252,25 +252,20 @@ SUBSEQUENT used for voodoo recursion."
 Annotated with named-sequence names and ending with :end on success,
 :incomplete when missing stuff or :extra when too much stuff."
   (catch 'FOUND
-    (cond ((and (null sub-meter)
-	        (null line))
-	   (throw 'FOUND (list :end)))
-	  ((progn
-	     (or (and sub-meter
-	              (and (null (cl-member-if 'cddr line))
-			   (listp (car sub-meter))
-			   (listp (caar sub-meter))
-			   (not (equal (caaar sub-meter) 'regexp))))
-		 (and sub-meter
-		      (null line)))
-	     (and sub-meter
-		  (null line)))
-	   (throw 'FOUND (list :incomplete)))
-	  ((and (null sub-meter)
-		(cl-member-if 'cddr line))
-	   (throw 'FOUND (list :extra))))
+    
     (let ((next-syllable (runo-next-syllable line))
 	  (return nil))
+
+      (cond ((and (null sub-meter)
+	          (null line))
+	     (throw 'FOUND (list :end)))
+	    ((and sub-meter
+		  (null line)) ; ran out of line before meter
+	     (throw 'FOUND (list :incomplete)))
+	    ((and (null sub-meter)
+		  (cl-member-if 'cddr line))
+	     (throw 'FOUND (list :extra))))
+      
       (dolist (option sub-meter)
 	(let* ((found
 		(pcase option
@@ -280,9 +275,11 @@ Annotated with named-sequence names and ending with :end on success,
 		  (`(:name ,name . ,section)
 		   (list :name name))
 		  (next
-		   (when (eq (car next)
-			     (caddar next-syllable))
-		     (car next))))))
+		   (if next-syllable
+		       (when (eq (car next)
+				 (caddar next-syllable))
+			 (car next))
+		     (throw 'FOUND (list :incomplete)))))))
 	  (when found
 	    (let ((found-rest
 		   (apply 'runo-analyze-line
@@ -352,32 +349,21 @@ If METER unsupplied use var runo-mitta."
 	    end-position)))
 	 (analysis (runo-analyze-line-point syllabification)))
     (runo-clear-area position end-position)
-    (cond (analysis
-	   (cl-loop for a-element in analysis
-		    with metron-name = nil
-		    with index = -1
-		    do (pcase a-element
-			 (`(:name ,metron)
-			  (setf metron-name metron))
-			 (`(,- ,limits . ,syllable-type)
-			  (put-text-property
-			   (+ position (car limits))
-			   (+ position (cadr limits))
-			   'face
-			   (runo-syllable-color (car syllable-type) metron-name
-						(setf index (1+ index)))))
-			 )))
-	  (t ; analysis fail
-	   (cl-loop for element in syllabification
-		    with index = -1
-		    do (pcase element
-			 (`(,- ,limits . ,syllable-type)
-			  (put-text-property
-			   (+ position (car limits))
-			   (+ position (cadr limits))
-			   'face
-			   (runo-syllable-color (car syllable-type) nil
-						(setf index (1+ index)))))))))
+    (cl-loop for a-element in (or analysis syllabification)
+	     with metron-name = nil
+	     with metron-index = -1
+	     for index = 0 then (1+ index)
+	     do (pcase a-element
+		  (`(:name ,metron)
+		   (setf metron-name metron
+			 metron-index (1+ metron-index)))
+		  (`(,- ,limits . ,syllable-type)
+		   (put-text-property
+		    (+ position (car limits))
+		    (+ position (cadr limits))
+		    'face
+		    (runo-syllable-color (car syllable-type) metron-name
+					 index)))))
     (let ((last-2 (last analysis 2)))
       (pcase (cadr last-2)
 	(:extra (runo-underline-extra (+ position (cadadr (car last-2)))
