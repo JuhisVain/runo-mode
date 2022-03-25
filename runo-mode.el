@@ -192,6 +192,18 @@
 
 (defvar runo-mitta nil)
 
+;;Some testing funcs:
+(defun set-ed ()
+  "Setup elegiac couplet."
+  (setf runo-mitta (runo-compiler-dispatch runo-eleginen-distikon)
+	runo-lines-per-meter 2)
+  nil)
+(defun set-em ()
+  "Setup epic meter."
+  (setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta)
+	runo-lines-per-meter 1)
+  nil)
+
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
