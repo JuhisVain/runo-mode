@@ -39,24 +39,31 @@
 (defconst runo-kesuura ; word stop
   "\\(?:[,.?!:; \n]\\)")
 
-(defun runo-syllable-color (syllable-type metron-type index)
+(defun runo-syllable-color (syllable-type metron-type syllable-index metron-index)
   ""
   (if (null syllable-type) ; paint regexp matches blue
       (list :background "#e1e1ff")
     (let ((metron-name (when metron-type
-			 (cl-subseq (symbol-name metron-type) 0 3)))) ; dak spo tro
+			 (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
+	  (syllable-si (mod syllable-index 2))
+	  (metron-si (mod metron-index 2)))
       (append
        (list :foreground
-	     (pcase syllable-type
-	       ('pitkä "#000000")
-	       ('puolipitkä "#3b3b3b")
-	       ('lyhyt "#777777")))
+	     (elt (pcase syllable-type
+		    ('pitkä '("#00003f" ; bluish
+			      "#450026")) ; reddish
+		    ('puolipitkä '("#3b3b67"
+				   "#673b51"))
+		    ('lyhyt '("#696993"
+			      "#936971")))
+		  syllable-si))
        (when metron-type ; if metron analysis was ok
 	 (list :background
-	       (pcase metron-name
-		 ("dak" "#ffe1e1")
-		 ("spo" "#ffffe1")
-		 ("tro" "#e1ffe1"))))))))
+	       (elt (pcase metron-name
+		      ("dak" '("#ffe1e1""#ffd3cb"))
+		      ("spo" '("#ffffe1" "#fff3cb"))
+		      ("tro" '("#e1ffe1" "#d8fec0")))
+		    metron-si)))))))
 
 (defun runo-underline-incomplete (start end)
   ""
@@ -352,18 +359,22 @@ If METER unsupplied use var runo-mitta."
     (cl-loop for a-element in (or analysis syllabification)
 	     with metron-name = nil
 	     with metron-index = -1
-	     for index = 0 then (1+ index)
+	     with index = -1
+	     ;for index = 0 then (1+ index)
 	     do (pcase a-element
 		  (`(:name ,metron)
 		   (setf metron-name metron
 			 metron-index (1+ metron-index)))
 		  (`(,- ,limits . ,syllable-type)
+		   (when syllable-type (setf index (1+ index)))
 		   (put-text-property
 		    (+ position (car limits))
 		    (+ position (cadr limits))
 		    'face
-		    (runo-syllable-color (car syllable-type) metron-name
-					 index)))))
+		    (runo-syllable-color (car syllable-type)
+					 metron-name
+					 index
+					 metron-index)))))
     (let ((last-2 (last analysis 2)))
       (pcase (cadr last-2)
 	(:extra (runo-underline-extra (+ position (cadadr (car last-2)))
