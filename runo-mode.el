@@ -43,9 +43,7 @@
   ""
   (if (null syllable-type) ; paint regexp matches blue
       (list :background "#e1e1ff")
-    (let ((metron-name (when metron-type
-			 (cl-subseq (symbol-name metron-type) 0 3))) ; dak spo tro
-	  (syllable-si (mod syllable-index 2))
+    (let ((syllable-si (mod syllable-index 2))
 	  (metron-si (mod metron-index 2)))
       (append
        (list :foreground
@@ -59,10 +57,10 @@
 		  syllable-si))
        (when metron-type ; if metron analysis was ok
 	 (list :background
-	       (elt (pcase metron-name
-		      ("dak" '("#ffe1e1""#ffd3cb"))
-		      ("spo" '("#ffffe1" "#fff3cb"))
-		      ("tro" '("#e1ffe1" "#d8fec0")))
+	       (elt (pcase (car metron-type)
+		      ('daktyyli '("#ffe1e1""#ffd3cb"))
+		      ('spondee '("#ffffe1" "#fff3cb"))
+		      ('trokee '("#e1ffe1" "#d8fec0")))
 		    metron-si)))))))
 
 (defun runo-underline-incomplete (start end)
@@ -82,118 +80,118 @@
 (defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
-     (named-seq daktyyli-1
+     (named-seq (daktyyli 1)
 		(or pitkä puolipitkä) ; 1. metronin 1. tavutyyppi
 		(or lyhyt puolipitkä) ; 1. metronin 2. tavutyyppi
 		(or lyhyt puolipitkä)) ; 1. metronin 3. tavutyyppi
-     (named-seq spondee-1
+     (named-seq (spondee 1)
 		(or pitkä puolipitkä) ; vaihtoehtoinen metron
 		(or pitkä puolipitkä)))
     (or
-     (named-seq daktyyli-2
+     (named-seq (daktyyli 2)
 		(or pitkä puolipitkä)
 		(or lyhyt puolipitkä)
 		(or lyhyt puolipitkä))
-     (named-seq spondee-2
+     (named-seq (spondee 2)
 		(or pitkä puolipitkä)
 		(or pitkä puolipitkä)))
     (or
-     (named-seq daktyyli-3
+     (named-seq (daktyyli 3)
 		(or pitkä puolipitkä)
 		(or lyhyt puolipitkä)
 		(or lyhyt puolipitkä))
-     (named-seq spondee-3
+     (named-seq (spondee 3)
 		(or pitkä puolipitkä)
 		(or pitkä puolipitkä)))
     (or
-     (named-seq daktyyli-4
+     (named-seq (daktyyli 4)
 		(or pitkä puolipitkä)
 		(or lyhyt puolipitkä)
 		(or lyhyt puolipitkä))
-     (named-seq spondee-4
+     (named-seq (spondee 4)
 		(or pitkä puolipitkä)
 		(or pitkä puolipitkä)))
-    (named-seq daktyyli-5
+    (named-seq (daktyyli 5)
 	       (or pitkä puolipitkä) ; 5. metron
 	       (or lyhyt puolipitkä)
 	       (or lyhyt puolipitkä))
-    (or (named-seq spondee-6
+    (or (named-seq (spondee 6)
 		   (or pitkä puolipitkä)
 		   (or pitkä puolipitkä))
-	(named-seq trokee-6
+	(named-seq (trokee 6)
 		   (or pitkä puolipitkä)
 		   (or lyhyt puolipitkä)))
     (regexp ,runo-kesuura)))
 
 (defvar runo-eleginen-distikon
-  `(seq (or (named-seq daktyyli-1
+  `(seq (or (named-seq (daktyyli 1)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-1
+	    (named-seq (spondee 1)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(or (named-seq daktyyli-2
+	(or (named-seq (daktyyli 2)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-2
+	    (named-seq (spondee 2)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(or (named-seq daktyyli-3
+	(or (named-seq (daktyyli 3)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-3
+	    (named-seq (spondee 3)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(or (named-seq daktyyli-4
+	(or (named-seq (daktyyli 4)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-4
+	    (named-seq (spondee 4)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(named-seq daktyyli-5
+	(named-seq (daktyyli 5)
 		   (or pitkä puolipitkä)
 		   (or lyhyt puolipitkä)
 		   (or lyhyt puolipitkä))
-	(or (named-seq trokee-6
+	(or (named-seq (trokee 6)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-6
+	    (named-seq (spondee 6)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
 	(regexp ,runo-kesuura)
-	(or (named-seq daktyyli-7
+	(or (named-seq (daktyyli 7)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-7
+	    (named-seq (spondee 7)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(or (named-seq daktyyli-8
+	(or (named-seq (daktyyli 8)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-8
+	    (named-seq (spondee 8)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(named-seq trokee-666 ;; todo
+	(named-seq (trokee 666); todo
 		   (or pitkä puolipitkä))
 	(regexp ,runo-kesuura)
-	(or (named-seq daktyyli-9
+	(or (named-seq (daktyyli 9)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	    (named-seq spondee-9
+	    (named-seq (spondee 9)
 		       (or pitkä puolipitkä)
 		       (or pitkä puolipitkä)))
-	(named-seq daktyyli-10
+	(named-seq (daktyyli 10)
 		       (or pitkä puolipitkä)
 		       (or lyhyt puolipitkä)
 		       (or lyhyt puolipitkä))
-	(named-seq trokee-999 ;; todo
+	(named-seq (trokee 999) ;; todo
 		   (or pitkä puolipitkä))
 	(regexp ,runo-kesuura)))
 
@@ -360,7 +358,6 @@ If METER unsupplied use var runo-mitta."
 	     with metron-name = nil
 	     with metron-index = -1
 	     with index = -1
-	     ;for index = 0 then (1+ index)
 	     do (pcase a-element
 		  (`(:name ,metron)
 		   (setf metron-name metron
