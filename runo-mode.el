@@ -424,6 +424,12 @@ If METER unsupplied use var runo-mitta."
 		       syllable)
 	 'pitkä)))
 
+(defun runo-syllable-index (index)
+  ""
+  (pcase index
+    (0 'ensitavu)
+    (- 'jatkotavu)))
+
 (defun runo-syllabificate-line (line)
   "Break down string LINE into list of lists of form (string (start end) &optional syllable-length)."
   (let ((split-line (split-string line (rx word-boundary) t))
@@ -491,23 +497,27 @@ If METER unsupplied use var runo-mitta."
   "Define a custom syllabification for WORD based on list SYLLABLES.
 ATTRIBUTES appended onto syllable-elements."
   (puthash word
-	   (cl-mapcar (lambda (syl at)
-			(cons syl
-			      (cond ((null at)
-				     (list (runo-syllable-length syl)))
-				    ((listp at)
-				     at)
-				    (t
-				     (list at)))))
-		      syllables
-		      (or attributes
-			  (make-list (length syllables) nil)))
+	   (cl-loop for syl in syllables
+		    for at in (or attributes (make-list (length syllables) nil))
+		    for index from 0
+		    collecting
+		    (cons syl
+			  (cond ((null at)
+				 (list (runo-syllable-length syl)
+				       (runo-syllable-index index)))
+				((listp at)
+				 at)
+				(t
+				 (list at)))))
 	   *runo-custom-syllabification*))
 
-(runo-defsyl "kuolinnuotiot" '("kuo" "lin" "nuo" "ti" "ot")) ; compound word diphtong "nuo"
-(runo-defsyl "Peleun" '("Pel" "eun")) ; strange syllabification
-(runo-defsyl "Hadeen" '("Ha" "deen") '(pitkä pitkä)) ; syllable length differs from written form
-(runo-defsyl "Here" '("He" "re") '(pitkä pitkä))
+ ; compound word diphtong "nuo":
+(runo-defsyl "kuolinnuotiot" '("kuo" "lin" "nuo" "ti" "ot"))
+ ; strange syllabification:
+(runo-defsyl "Peleun" '("Pel" "eun") '((puolipitkä ensitavu) (pitkä jatkotavu)))
+ ; syllable length differs from written form:
+(runo-defsyl "Hadeen" '("Ha" "deen") '((pitkä ensitavu) (pitkä jatkotavu)))
+(runo-defsyl "Here" '("He" "re") '((pitkä ensitavu) (pitkä jatkatavu)))
 
 (defun runo-syllabificate (word &optional syl-index)
   "Return list of finnish syllable-elements (string . attributes)
@@ -520,7 +530,9 @@ in a single WORD.  SYL-INDEX will hold index of current syllable."
 		    (end-count (runo-tavu-loppu (cl-subseq word core-count)))
 		    (end (+ core-count end-count))
 		    (syllable (cl-subseq word 0 end)))
-	       (cons (list syllable (runo-syllable-length syllable))
+	       (cons (list syllable
+			   (runo-syllable-length syllable)
+			   (runo-syllable-index syl-index))
 		     (runo-syllabificate (cl-subseq word end) (1+ syl-index))))))))
 
 ;; http://www.kielitoimistonohjepankki.fi/ohje/153
