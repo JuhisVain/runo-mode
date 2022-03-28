@@ -222,6 +222,14 @@ SUBSEQUENT used for voodoo recursion."
        (if (and (listp rest) (listp (car rest)))
 	   (cl-list* :name name rest)
 	 (list :name name rest))))
+    (`(and . ,properties)
+     (let ((ret
+	    (list ; :)
+	     (append ; :|
+	      (list ; :(
+	       (cons :and properties))
+	      (list subsequent)))))
+       ret))
     (element
      (if (and (listp subsequent)
 	      (listp (car subsequent))
@@ -252,15 +260,21 @@ SUBSEQUENT used for voodoo recursion."
 (progn (setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta))
        nil)
 
+(defun runo-members (elts list)
+  "Return T when all ELTS found in LIST."
+  (catch 'ESCAPE
+    (dolist (elt elts)
+      (unless (member elt list)
+	(throw 'ESCAPE nil)))
+    t))
+
 (defun runo-analyze-line (line sub-meter)
   "Return list of syllable types in LINE on match with SUB-METER.
 Annotated with named-sequence names and ending with :end on success,
 :incomplete when missing stuff or :extra when too much stuff."
   (catch 'FOUND
-    
     (let ((next-syllable (runo-next-syllable line))
 	  (return nil))
-
       (cond ((and (null sub-meter)
 	          (null line))
 	     (throw 'FOUND (list :end)))
@@ -270,7 +284,6 @@ Annotated with named-sequence names and ending with :end on success,
 	    ((and (null sub-meter)
 		  (cl-member-if 'cddr line))
 	     (throw 'FOUND (list :extra))))
-      
       (dolist (option sub-meter)
 	(let* ((found
 		(pcase option
@@ -279,10 +292,15 @@ Annotated with named-sequence names and ending with :end on success,
 		     'rx-match))
 		  (`(:name ,name . ,section)
 		   (list :name name))
+		  (`((:and . ,required) . ,rest)
+		   ;; Let's say these props MUST for now be syllable properties and not regexps
+		   (if next-syllable
+		       (runo-members required (cddar next-syllable))
+		     (throw 'FOUND (list :incomplete))))
 		  (next
 		   (if next-syllable
-		       (when (eq (car next)
-				 (caddar next-syllable))
+		       (when ;(eq (car next) (caddar next-syllable))
+			   (member (car next) (cddar next-syllable))
 			 (car next))
 		     (throw 'FOUND (list :incomplete)))))))
 	  (when found
