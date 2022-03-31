@@ -197,16 +197,16 @@
 
 ;;; WIP
 (defvar runo-kalevalamitta ; kylläpä on nyt keksitty sääntöä
-  `(seq (or (named-seq (kaksijalka 1)
+  `(seq (or (named-seq (nelijalka 1)
+		       (or pitkä puolipitkä lyhyt)
+		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt))
 	    (named-seq (kolmijalka 1)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt))
-	    (named-seq (nelijalka 1)
-		       (or pitkä puolipitkä lyhyt)
-		       (or pitkä puolipitkä lyhyt)
+	    (named-seq (kaksijalka 1)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)))
 	(or (named-seq (tasajalka 2)
