@@ -446,6 +446,12 @@ Annotated with named-sequence names and ending with :end on success,
 If METER unsupplied use var runo-mitta."
   (runo-analyze-line syllabification (or meter runo-mitta)))
 
+(defun runo-paint-after-input ()
+  "Move back one char and paint line."
+  (save-excursion
+    (backward-char 1)
+    (runo-paint-line)))
+
 (defun runo-paint-line ()
   "Paint runo-lines-per-meter lines around current point position based on meter analysis."
   (interactive)
@@ -714,7 +720,8 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
   (setq mode-name "RUNO")
   (runo-buffer-repaint)
   (make-local-variable 'post-self-insert-hook)
-  (push 'runo-paint-line post-self-insert-hook)
+  (push 'runo-paint-after-input
+	post-self-insert-hook)
   (run-hooks 'runo-mode-hook))
 
 (provide 'runo-mode)
