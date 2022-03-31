@@ -213,7 +213,7 @@
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt))
-	    (named-seq (kaksijalka 1)
+	    (named-seq (kaksijalka 1) ;; Later options preferred
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)))
 	(or (named-seq (tasajalka 2)
@@ -447,7 +447,7 @@ If METER unsupplied use var runo-mitta."
   (runo-analyze-line syllabification (or meter runo-mitta)))
 
 (defun runo-paint-line ()
-  ""
+  "Paint runo-lines-per-meter lines around current point position based on meter analysis."
   (interactive)
   (let* ((position
 	  (line-beginning-position
@@ -537,7 +537,7 @@ If METER unsupplied use var runo-mitta."
 	 'pitkä)))
 
 (defun runo-syllable-index (index)
-  ""
+  "Return a syllable's type name based on number INDEX."
   (pcase index
     (0 'ensitavu)
     (- 'jatkotavu)))
