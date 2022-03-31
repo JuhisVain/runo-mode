@@ -60,7 +60,14 @@
 	       (elt (pcase (car metron-type)
 		      ('daktyyli '("#ffe1e1""#ffd3cb"))
 		      ('spondee '("#ffffe1" "#fff3cb"))
-		      ('trokee '("#e1ffe1" "#d8fec0")))
+		      ('trokee '("#e1ffe1" "#d8fec0"))
+
+		      ('kaksijalka '("#ffe1e1""#ffd3cb"))
+		      ('kolmijalka '("#ffe1e1""#ffd3cb"))
+		      ('nelijalka '("#ffe1e1""#ffd3cb"))
+		      ('tasajalka '("#ffffe1" "#fff3cb"))
+		      ('murtojalka '("#e1ffe1" "#d8fec0"))
+		      ('jatkojalka '("#e1ffe1" "#d8fec0")))
 		    metron-si)))))))
 
 (defun runo-underline-incomplete (start end)
@@ -301,19 +308,26 @@ SUBSEQUENT used for voodoo recursion."
      (runo-compile-options options subsequent))
     (`(named-seq ,name . ,sequence)
      (let ((rest (runo-compile-sequence sequence subsequent)))
-       (if (and (listp rest) (listp (car rest)))
+       (if (and (listp rest)
+		(listp (car rest))
+		(not (equal (caar rest) :and)))
 	   (cl-list* :name name rest)
 	 (list :name name rest))))
     (`(and . ,properties)
-     (list ;; ... pretty sure this will break with some more OR layering
+     (list
       (if (and (listp subsequent)
 	       (listp (car subsequent))
-	       (listp (caar subsequent)))
+	       ;;(listp (caar subsequent))
+	       (not (equal (caar subsequent) :and))
+	       (not (equal (caar subsequent) 'regexp))
+	       )
 	  (cons (cons :and properties) subsequent)
-	(list (cons :and properties) subsequent))))
+	(list;(cons;(list
+	 (cons :and properties) subsequent))))
     (element
      (if (and (listp subsequent)
 	      (listp (car subsequent))
+	      ;(listp (caar subsequent))
 	      (not (equal (caar subsequent) 'regexp)))
 	 (cons element subsequent)
        (list element subsequent)))))
@@ -375,15 +389,14 @@ Annotated with named-sequence names and ending with :end on success,
 		   (list :name name))
 		  (`((:and . ,required) . ,rest)
 		   ;; Let's say these props MUST for now be syllable properties and not regexps
-		   (if next-syllable
-		       (runo-members required (cddar next-syllable))
-		     (throw 'FOUND (list :incomplete))))
+		   (cond (next-syllable
+			  (runo-members required (cddar next-syllable)))
+			 (t (throw 'FOUND (list :incomplete)))))
 		  (next
-		   (if next-syllable
-		       (when ;(eq (car next) (caddar next-syllable))
-			   (member (car next) (cddar next-syllable))
-			 (car next))
-		     (throw 'FOUND (list :incomplete)))))))
+		   (cond (next-syllable
+			  (when (member (car next) (cddar next-syllable))
+			    (car next)))
+			 (t (throw 'FOUND (list :incomplete))))))))
 	  (when found
 	    (let ((found-rest
 		   (apply 'runo-analyze-line
