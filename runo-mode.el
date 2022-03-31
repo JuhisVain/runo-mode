@@ -285,6 +285,12 @@
 	runo-lines-per-meter 1)
   nil)
 
+(defun set-km ()
+  "Setup kalevala meter."
+  (setf runo-mitta (runo-compiler-dispatch runo-kalevalamitta)
+	runo-lines-per-meter 1)
+  nil)
+
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
