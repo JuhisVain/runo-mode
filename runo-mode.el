@@ -48,12 +48,12 @@
       (append
        (list :foreground
 	     (elt (pcase syllable-type
-		    ('pitkä '("#00003f" ; bluish
-			      "#450026")) ; reddish
-		    ('puolipitkä '("#3b3b67"
-				   "#673b51"))
-		    ('lyhyt '("#696993"
-			      "#936971")))
+		    ('pitkä '("#003541" ;bluish
+			      "#00359e"))
+		    ('puolipitkä '("#7c0000" ;reddish
+				   "#863541"))
+		    ('lyhyt '("#645e00" ;yellowish
+			      "#848000")))
 		  syllable-si))
        (when metron-type ; if metron analysis was ok
 	 (list :background
