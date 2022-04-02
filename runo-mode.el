@@ -472,11 +472,11 @@ If METER unsupplied use var runo-mitta."
 	    end-position)))
 	 (analysis (runo-analyze-line-point syllabification)))
     (runo-clear-area position end-position)
-    (cl-loop for a-element in (or analysis syllabification)
+    (cl-loop for a-elements on (or analysis syllabification)
 	     with metron-name = nil
 	     with metron-index = -1
 	     with index = -1
-	     do (pcase a-element
+	     do (pcase (car a-elements)
 		  (`(:name ,metron)
 		   (setf metron-name metron
 			 metron-index (1+ metron-index)))
@@ -484,9 +484,15 @@ If METER unsupplied use var runo-mitta."
 		   (when syllable-type (setf index (1+ index)))
 		   (put-text-property
 		    (+ position (car limits))
-		    (+ position (cadr limits))
+		    ;; Beginning of next syllable:
+		    (+ position
+		       (or (caadr (car
+				   (cl-member-if 'stringp (cdr a-elements)
+						 :key (lambda (x)
+							(and x (listp x) (car x))))))
+			   (cadr limits)))
 		    'face
-		    (runo-syllable-color (car syllable-type)
+		    (runo-syllable-color (car syllable-type) ; TODO: send the whole thing
 					 metron-name
 					 index
 					 metron-index)))))
