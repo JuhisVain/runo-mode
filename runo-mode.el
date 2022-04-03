@@ -707,6 +707,23 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 		  word)
     (- (cadr (match-data)) 2)))) ;; Drop consonant & vowel
 
+(defun runo-syllable-analysis (string)
+  "Return set of syllable lengths listed by position on each line in STRING."
+  ;; Only useful for meters with always exact count of syllables
+  (let* ((syls-list (mapcar
+		     (lambda (x)
+		       (cl-remove-if
+			'null
+			(mapcar 'caddr (runo-syllabificate-line x))))
+		     (split-string string "\n" t)))
+	 (collection (make-list (length (car syls-list)) (list))))
+    (cl-loop for syls in syls-list
+	     do (cl-loop for syl in syls
+			 for set on collection
+			 do (unless (member syl (car set))
+			      (push syl (car set)))))
+    collection))
+
 (defun runo-buffer-repaint ()
   "Repaint current buffer."
   (interactive)
