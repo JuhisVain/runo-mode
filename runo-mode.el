@@ -727,11 +727,19 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 (defun runo-buffer-repaint ()
   "Repaint current buffer."
   (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (< (point) (point-max))
-      (runo-paint-line)
-      (forward-line))))
+  (let ((start-time (time-convert (current-time) 1000)))
+    (save-excursion
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(runo-paint-line)
+	(forward-line)))
+    (let* ((time (- (car (time-convert (current-time) 1000))
+		    (car start-time)))
+	   (msec (mod time 1000))
+	   (min (truncate time 60000))
+	   (sec (- (truncate time 1000) (* min 60))))
+      (message "Runo buffer painted in %s minutes, %s seconds, %s milliseconds"
+	       min sec msec))))
 
 (defun runo-mode ()
   "Yolo."
