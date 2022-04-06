@@ -452,6 +452,19 @@ If METER unsupplied use var runo-mitta."
     (backward-char 1)
     (runo-paint-line)))
 
+(defun runo-stanza-beginning-position ()
+  "Position of first char in stanza under point."
+  (line-beginning-position
+   (- (1- (mod (1- (line-number-at-pos))
+	       runo-lines-per-meter)))))
+
+(defun runo-stanza-end-position ()
+  "Position of last char in stanza under point."
+  (line-end-position
+   (- runo-lines-per-meter
+      (mod (1- (line-number-at-pos))
+	   runo-lines-per-meter))))
+
 (defun runo-forward-stanza ()
   "Move point to the beginning of next stanza."
   (interactive)
