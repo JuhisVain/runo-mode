@@ -452,6 +452,14 @@ If METER unsupplied use var runo-mitta."
     (backward-char 1)
     (runo-paint-line)))
 
+(defun runo-forward-stanza ()
+  "Move point to the beginning of next stanza."
+  (interactive)
+  (forward-line
+   (- runo-lines-per-meter
+      (mod (1- (line-number-at-pos))
+	   runo-lines-per-meter))))
+
 (defun runo-paint-line ()
   "Paint runo-lines-per-meter lines around current point position based on meter analysis."
   (interactive)
@@ -732,7 +740,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
       (goto-char (point-min))
       (while (< (point) (point-max))
 	(runo-paint-line)
-	(forward-line)))
+        (runo-forward-stanza)))
     (let* ((time (- (car (time-convert (current-time) 1000))
 		    (car start-time)))
 	   (msec (mod time 1000))
