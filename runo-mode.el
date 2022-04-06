@@ -70,13 +70,13 @@
 		      ('jatkojalka '("#e1ffe1" "#d8fec0")))
 		    metron-si)))))))
 
-(defun runo-underline-incomplete (start end)
+(defun runo-stamp-incomplete (start end)
   ""
   (add-face-text-property
    start end
    '(:underline (:color "#804000" :style wave))))
 
-(defun runo-underline-extra (start end)
+(defun runo-stamp-extra (start end)
   ""
   (add-face-text-property
    start end
@@ -519,10 +519,11 @@ If METER unsupplied use var runo-mitta."
 					 metron-index)))))
     (let ((last-2 (last analysis 2)))
       (pcase (cadr last-2)
-	(:extra (runo-underline-extra (+ position (cadadr (car last-2)))
-				      (line-end-position)))
-	(:incomplete (runo-underline-incomplete (line-beginning-position)
-						(line-end-position)))))))
+	(:extra (runo-stamp-extra (+ position (cadadr (car last-2)))
+				  (runo-stanza-end-position)))
+	(:incomplete (runo-stamp-incomplete
+		      (runo-stanza-beginning-position)
+		      (runo-stanza-end-position)))))))
 
 
 ;;; A bit of testing:
