@@ -47,7 +47,7 @@
 	  (metron-si (mod metron-index 2)))
       (append
        (list :foreground
-	     (elt (pcase syllable-type
+	     (elt (pcase (car syllable-type)
 		    ('pitkä '("#003541" ;bluish
 			      "#00359e"))
 		    ('puolipitkä '("#7c0000" ;reddish
@@ -500,7 +500,7 @@ If METER unsupplied use var runo-mitta."
 							(and x (listp x) (car x))))))
 			   (cadr limits)))
 		    'face
-		    (runo-syllable-color (car syllable-type) ; TODO: send the whole thing
+		    (runo-syllable-color syllable-type
 					 metron-name
 					 index
 					 metron-index)))))
