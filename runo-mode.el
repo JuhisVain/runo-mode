@@ -298,6 +298,8 @@
 	runo-lines-per-meter 1)
   nil)
 
+;;; The human readable meters must be compiled into a tree to allow
+;; backtracking on the OR forms.
 (defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
