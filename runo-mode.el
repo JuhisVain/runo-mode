@@ -547,6 +547,38 @@ If METER unsupplied use var runo-mitta."
 		       (line-end-position)
 		       prop))
 
+(defun runo-describe-meter (&optional meter)
+  ""
+  (when (null meter)
+    (setf meter runo-mitta))
+  (let ((count 0)
+	(set (make-hash-table :test 'eq)))
+    ;; TODO: get to bottom and start storing unique counts to set instead
+    (cl-labels
+	((node-rec (tree)
+	   (when tree
+	     (setf count (1+ count))
+	     (puthash tree t set)
+	     (pcase tree
+	       ((pred null)
+		(message "NULL")
+		nil)
+	       (`((regexp . ,rx) . ,opts)
+		(dolist (opt opts)
+		  (node-rec opt)))
+	       (`(:name ,name . ,opts)
+		(dolist (opt opts)
+		  (node-rec opt)))
+	       (`((:and . ,props) . ,opts) ;untested + I think AND compilation still half broken
+		(dolist (opt opts)
+		  (node-rec opt)))
+	       (`(,root . ,opts)
+		(dolist (opt opts)
+		  (node-rec opt)))))))
+      (node-rec meter)
+      (message "Count: %s\nUnique nodes: %s"
+	       count (hash-table-count set)))))
+
 (defun runo-syllable-length (syllable)
   "Return symbol designating SYLLABLE's length."
   (cond ((string-match (rx bol
