@@ -9,7 +9,7 @@
 
 (defvar runo-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-j" 'newline-and-indent) ;; example
+    (define-key map "\C-c\C-s" 'runo-custom-syllabification)
     map)
   "Keymap for runo-mode.")
 
@@ -671,7 +671,10 @@ If METER unsupplied use var runo-mitta."
 	 (syllables (mapcar 'car new-syls)))
     (runo-defsyl (apply 'concat syllables)
 		 syllables
-		 (mapcar 'cadr new-syls))))
+		 (mapcar 'cadr new-syls))
+    ;; TODO: Search & repaint all matches
+    ;; if so then must avoid search somehow on runo-mode execution in large file
+    (runo-paint-line)))
 
 (defun runo-defsyl (word syllables &optional attributes)
   "Define a custom syllabification for WORD based on list SYLLABLES.
