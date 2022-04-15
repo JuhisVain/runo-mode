@@ -476,7 +476,8 @@ If METER unsupplied use var runo-mitta."
 	   runo-lines-per-meter))))
 
 (defun runo-paint-line ()
-  "Paint runo-lines-per-meter lines around current point position based on meter analysis."
+  "Paint runo-lines-per-meter lines around current position based on analysis.
+Will return result of meter analysis."
   (interactive)
   (let* ((position
 	  (line-beginning-position
@@ -525,7 +526,9 @@ If METER unsupplied use var runo-mitta."
 				  (runo-stanza-end-position)))
 	(:incomplete (runo-stamp-incomplete
 		      (runo-stanza-beginning-position)
-		      (runo-stanza-end-position)))))))
+		      (runo-stanza-end-position))))
+      ;; return analysis result:
+      (cadr last-2))))
 
 
 ;;; A bit of testing:
