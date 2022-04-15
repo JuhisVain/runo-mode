@@ -680,13 +680,19 @@ Will return result of meter analysis."
 	      (format "Syllabification for word \"%s\": " point-word)
 	      (runo-format-syllabification point-word))))))
   (let* ((new-syls (runo-deformat-syllabification syllabification))
-	 (syllables (mapcar 'car new-syls)))
-    (runo-defsyl (apply 'concat syllables)
+	 (syllables (mapcar 'car new-syls))
+	 (word (apply 'concat syllables)))
+    (runo-defsyl word
 		 syllables
 		 (mapcar 'cadr new-syls))
-    ;; TODO: Search & repaint all matches
-    ;; if so then must avoid search somehow on runo-mode execution in large file
-    (runo-paint-line)))
+    (save-excursion
+      (let ((new-results (mapcar (lambda (pos)
+				   (goto-char pos)
+				   (list (runo-paint-line) pos))
+				 (runo-list-match-positions (concat "\\b" word "\\b")))))
+	(dolist (res new-results)
+	  (when (not (eq (car res) :end))
+	    (message "Line at %s: analysis result is %s!" (cadr res) (car res))))))))
 
 (defun runo-defsyl (word syllables &optional attributes)
   "Define a custom syllabification for WORD based on list SYLLABLES.
