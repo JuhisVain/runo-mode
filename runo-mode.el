@@ -660,6 +660,15 @@ Will return result of meter analysis."
 				  ("--" 'puolipitkä)
 				  ("-" 'lyhyt)))))
 
+(defun runo-list-match-positions (regexp)
+  "Return list of beginning positions in current buffer where REGEXP matched."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((list nil))
+      (while (re-search-forward regexp nil t)
+	(push (match-beginning 0) list))
+      list)))
+
 (defun runo-custom-syllabification (syllabification)
   "Define SYLLABIFICATION for word under point."
   (interactive
