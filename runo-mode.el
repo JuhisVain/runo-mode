@@ -278,6 +278,40 @@
 			   (and jatkotavu lyhyt))))
 	(regexp ,runo-kesuura)))
 
+'(defmeter kalevala-mitta
+   ((tavu (or pitkä puolipitkä lyhyt))
+    (ensi-pitkä (or (and ensitavu pitkä)
+		    (and ensitavu puolipitkä)))
+    (ensi-lyhyt (and ensitavu lyhyt))
+    (jatko (or (and jatkotavu pitkä)
+	       (and jatkotavu puolipitkä)
+	       (and jatkotavu lyhyt))))
+   (or (name (nelijalka 1)
+	     tavu tavu tavu tavu)
+       (name (kolmijalka 1)
+	     tavu tavu tavu)
+       (name (kaksijalka 1)
+	     tavu tavu))
+   (or (name (tasajalka 2)
+	     ensi-pitkä jatko)
+       (name (murtojalka 2)
+	     (or ensi-pitkä jatko) ensi-lyhyt) ;; TODO: check if (OR (OR ..)(OR ..)) OK?
+       (name (jatkojalka 2)
+	     jatko jatko))
+   (or (name (tasajalka 3)
+	     ensi-pitkä jatko)
+       (name (murtojalka 3)
+	     (or ensi-pitkä jatko) ensi-lyhyt)
+       (name (jatkojalka 3)
+	     jatko jatko))
+   (or (name (tasajalka 4)
+	     ensi-pitkä jatko)
+       (name (murtojalka 4)
+	     (or ensi-pitkä jatko) ensi-lyhyt)
+       (name (jatkojalka 4)
+	     jatko jatko))
+   kesuura
+       
 (defvar runo-mitta nil)
 
 ;;Some testing funcs:
