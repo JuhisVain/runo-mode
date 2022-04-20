@@ -296,7 +296,7 @@
 	     ensi-pitkä jatko)
        (name (murtojalka 2)
 	     (or ensi-pitkä jatko) ensi-lyhyt) ;; TODO: check if (OR (OR ..)(OR ..)) OK?
-       (name (jatkojalka 2)
+       (name (jatkojalka 2)                    ;; TODO: not OK
 	     jatko jatko))
    (or (name (tasajalka 3)
 	     ensi-pitkä jatko)
@@ -310,8 +310,32 @@
 	     (or ensi-pitkä jatko) ensi-lyhyt)
        (name (jatkojalka 4)
 	     jatko jatko))
-   kesuura
-       
+   kesuura)
+
+
+(defmacro defmeter (symbol &optional short-hands &rest body)
+  ""
+  (cl-labels ((traverse (tree function)
+			(cond ((listp tree)
+			       (cons (traverse (car tree) function)
+				     (when (cdr tree)
+				       (traverse (cdr tree) function))))
+			      (t (funcall function tree)))))
+    (let ((length (length body)))
+      `(defvar ,symbol
+	 (seq ,@(traverse body
+			  (lambda (x)
+			    (cond ((eq x 'name) 'named-seq)
+				  ((eq x 'or) 'or)
+				  ((eq x 'and) 'and)
+				  ((eq x 'kesuura)
+				   `(regexp ,runo-kesuura))
+				  (t
+				   (let ((short-hand (assoc x short-hands)))
+				     (if short-hand
+					 (cadr short-hand)
+				       x)))))))))))
+
 (defvar runo-mitta nil)
 
 ;;Some testing funcs:
