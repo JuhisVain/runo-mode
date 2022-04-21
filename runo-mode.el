@@ -295,8 +295,8 @@
    (or (name (tasajalka 2)
 	     ensi-pitkä jatko)
        (name (murtojalka 2)
-	     (or ensi-pitkä jatko) ensi-lyhyt) ;; TODO: check if (OR (OR ..)(OR ..)) OK?
-       (name (jatkojalka 2)                    ;; TODO: not OK
+	     (or ensi-pitkä jatko) ensi-lyhyt)
+       (name (jatkojalka 2)
 	     jatko jatko))
    (or (name (tasajalka 3)
 	     ensi-pitkä jatko)
@@ -312,18 +312,32 @@
 	     jatko jatko))
    kesuura)
 
-
 (defmacro defmeter (symbol &optional short-hands &rest body)
   ""
   (cl-labels ((traverse (tree function)
-			(cond ((listp tree)
-			       (cons (traverse (car tree) function)
-				     (when (cdr tree)
-				       (traverse (cdr tree) function))))
-			      (t (funcall function tree)))))
+	       (cond ((listp tree)
+		      (cons (traverse (car tree) function)
+			    (when (cdr tree)
+			      (traverse (cdr tree) function))))
+		     (t (funcall function tree))))
+	      (flat (tree); remove child nodes duplicating parent (or (or ..) ..)
+	       (if (listp tree)
+		   (let ((flat-tree (list (car tree))))
+		     (dolist (element (cdr tree))
+		       (setf flat-tree
+			     (append flat-tree (if (and (listp element)
+							(eq (car flat-tree)
+							    (car element)))
+						   (cdr element)
+						 (list element)))))
+		     (cons (car flat-tree) ; good enough
+			   (mapcar (lambda (x)
+				     (flat x))
+				   (cdr flat-tree))))
+		 tree)))
     (let ((length (length body)))
       `(defvar ,symbol
-	 (seq ,@(traverse body
+	 (seq ,@(flat (traverse body
 			  (lambda (x)
 			    (cond ((eq x 'name) 'named-seq)
 				  ((eq x 'or) 'or)
@@ -334,7 +348,7 @@
 				   (let ((short-hand (assoc x short-hands)))
 				     (if short-hand
 					 (cadr short-hand)
-				       x)))))))))))
+				       x)))))))))))) ; now this is lisping
 
 (defvar runo-mitta nil)
 
