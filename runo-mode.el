@@ -273,7 +273,7 @@
 	(regexp ,runo-kesuura)))
 
 ;;; WIP
-(defvar runo-kalevalamitta ; kylläpä on nyt keksitty sääntöä
+'(defvar runo-kalevalamitta ; kylläpä on nyt keksitty sääntöä
   `(seq (or (named-seq (nelijalka 1)
 		       (or pitkä puolipitkä lyhyt)
 		       (or pitkä puolipitkä lyhyt)
@@ -348,7 +348,7 @@
 			   (and jatkotavu lyhyt))))
 	(regexp ,runo-kesuura)))
 
-'(defmeter kalevala-mitta
+(defmeter runo-kalevalamitta
    ((tavu (or pitkä puolipitkä lyhyt))
     (ensi-pitkä (or (and ensitavu pitkä)
 		    (and ensitavu puolipitkä)))
