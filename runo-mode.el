@@ -84,7 +84,77 @@
 
 (defvar runo-lines-per-meter 1)
 
-(defvar runo-eeppinen-mitta
+(defmacro defmeter (symbol &optional short-hands &rest body)
+  ""
+  (cl-labels ((traverse (tree function)
+		(cond ((listp tree)
+		       (cons (traverse (car tree) function)
+			     (when (cdr tree)
+			       (traverse (cdr tree) function))))
+		      (t (funcall function tree))))
+	      (flat (tree); remove child nodes duplicating parent (or (or ..) ..)
+		(if (listp tree)
+		    (let ((flat-tree (list (car tree))))
+		      (dolist (element (cdr tree))
+			(setf flat-tree
+			      (append flat-tree (if (and (listp element)
+							 (or (eq (car flat-tree)
+								 (car element))
+							     (and (eq (car flat-tree)
+								      'named-seq)
+								  (eq (car element)
+								      'seq))))
+						    (cdr element)
+						  (list element)))))
+		      (cons (car flat-tree) ; good enough
+			    (mapcar (lambda (x)
+				      (flat x))
+				    (cdr flat-tree))))
+		  tree)))
+    (let ((length (length body)))
+      `(progn
+	 (,(if (boundp symbol)
+	       (progn (message "Redefining meter bound to %s" symbol)
+		      'setf)
+	     'defvar)
+	  ,symbol
+	  '(,@(flat (append '(seq) (traverse body
+				  (lambda (x)
+				    (cond ((eq x 'name) 'named-seq)
+					  ((eq x 'or) 'or)
+					  ((eq x 'and) 'and)
+					  ((eq x 'kesuura)
+					   `(regexp ,runo-kesuura))
+					  ((eq x 'seq) 'seq)
+					  (t
+					   (let ((short-hand (assoc x short-hands)))
+					     (if short-hand
+						 (cadr short-hand)
+					       x))))))))))
+	 ',symbol))))
+
+(defmeter runo-eeppinen-mitta
+  ((dak (seq (or pitkä puolipitkä) ; metron names will also be expanded if set here
+	     (or lyhyt puolipitkä)
+	     (or lyhyt puolipitkä)))
+   (spo (seq (or pitkä puolipitkä)
+	     (or pitkä puolipitkä)))
+   (tro (seq (or pitkä puolipitkä)
+	     (or lyhyt puolipitkä))))
+  (or (name (daktyyli 1) dak)
+      (name (spondee 1) spo))
+  (or (name (daktyyli 2) dak)
+      (name (spondee 2) spo))
+  (or (name (daktyyli 3) dak)
+      (name (spondee 3) spo))
+  (or (name (daktyyli 4) dak)
+      (name (spondee 4) spo))
+  (name (daktyyli 5) dak)
+  (or (name (spondee 6) spo)
+      (name (trokee 6) tro))
+  kesuura)
+
+'(defvar runo-eeppinen-mitta
   `(seq ; säe
     (or ; 1. metron
      (named-seq (daktyyli 1)
@@ -311,44 +381,6 @@
        (name (jatkojalka 4)
 	     jatko jatko))
    kesuura)
-
-(defmacro defmeter (symbol &optional short-hands &rest body)
-  ""
-  (cl-labels ((traverse (tree function)
-	       (cond ((listp tree)
-		      (cons (traverse (car tree) function)
-			    (when (cdr tree)
-			      (traverse (cdr tree) function))))
-		     (t (funcall function tree))))
-	      (flat (tree); remove child nodes duplicating parent (or (or ..) ..)
-	       (if (listp tree)
-		   (let ((flat-tree (list (car tree))))
-		     (dolist (element (cdr tree))
-		       (setf flat-tree
-			     (append flat-tree (if (and (listp element)
-							(eq (car flat-tree)
-							    (car element)))
-						   (cdr element)
-						 (list element)))))
-		     (cons (car flat-tree) ; good enough
-			   (mapcar (lambda (x)
-				     (flat x))
-				   (cdr flat-tree))))
-		 tree)))
-    (let ((length (length body)))
-      `(defvar ,symbol
-	 (seq ,@(flat (traverse body
-			  (lambda (x)
-			    (cond ((eq x 'name) 'named-seq)
-				  ((eq x 'or) 'or)
-				  ((eq x 'and) 'and)
-				  ((eq x 'kesuura)
-				   `(regexp ,runo-kesuura))
-				  (t
-				   (let ((short-hand (assoc x short-hands)))
-				     (if short-hand
-					 (cadr short-hand)
-				       x)))))))))))) ; now this is lisping
 
 (defvar runo-mitta nil)
 
