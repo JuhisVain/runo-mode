@@ -577,6 +577,17 @@ If METER unsupplied use var runo-mitta."
       (mod (1- (line-number-at-pos))
 	   runo-lines-per-meter))))
 
+(defun runo-analysis-end-position (analysis)
+  "Return end position of ANALYSIS element immediately preceding :end mark.
+Return nil on failure."
+  (cl-do ((head analysis (cdr head)))
+      ((or (eq :end (cadr head))
+	   (null head))
+       ;; I'm pretty sure (car head) is always a syllable/regexp element
+       (when head
+	 (+ (line-beginning-position) ;; Untested on multilines
+	    (cadadr (car head)))))))
+
 (defun runo-forward-stanza ()
   "Move point to the beginning of next stanza."
   (interactive)
@@ -635,7 +646,8 @@ Will return result of meter analysis."
 	(:extra (runo-stamp-extra (+ position (cadadr (car last-2)))
 				  (runo-stanza-end-position)))
 	(:incomplete (runo-stamp-incomplete
-		      (runo-stanza-beginning-position)
+		      (or (runo-analysis-end-position analysis)
+			  (runo-stanza-beginning-position))
 		      (runo-stanza-end-position))))
       ;; return analysis result:
       (cadr last-2))))
