@@ -483,8 +483,14 @@ Annotated with named-sequence names and ending with :end on success,
 		  (null line)) ; ran out of line before meter
 	     (throw 'FOUND (list :incomplete)))
 	    ((and (null sub-meter)
-		  (cl-member-if 'cddr line))
-	     (throw 'FOUND (list :extra))))
+		  (cl-member-if 'cddr line)) ; There's something extra over here!
+	     (let* ((rest-analysis (runo-analyze-line line runo-mitta))
+		    (rest-result (car (last rest-analysis))))
+	       (if rest-analysis
+		   ;; mark OK metre end and append subsequent analysis:
+		   (throw 'FOUND (cons :end rest-analysis))
+		 ;; subsequent analysis fails:
+		 (throw 'FOUND (list :extra))))))
       (dolist (option sub-meter)
 	(let* ((found
 		(pcase option
