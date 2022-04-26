@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 ;;; package --- Summary
 
 ;;; Commentary:
@@ -69,6 +70,11 @@
 		      ('murtojalka '("#e1ffe1" "#d8fec0"))
 		      ('jatkojalka '("#e1ffe1" "#d8fec0")))
 		    metron-si)))))))
+
+(defun make-metron-color-func (alist)
+  ""
+  (lambda (name)
+    (cdr (assoc name alist))))
 
 (defun runo-stamp-incomplete (start end)
   ""
