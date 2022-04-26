@@ -40,6 +40,21 @@
 (defconst runo-kesuura ; word stop
   "\\(?:[,.?!:; \n]\\)")
 
+(defvar runo-mitta nil)
+(defvar runo-meter-color-function nil)
+
+(defvar runo-meter-map (make-hash-table :test 'eq)
+  "Storage for meter keyed by name symbol.")
+(defvar runo-compiled-meter-map (make-hash-table :test 'eq)
+  "Storage for compiled meters keyed by name symbol.")
+
+(defvar *runo-custom-syllabification* (make-hash-table :test 'equal))
+
+(cl-defstruct runo-meter
+  lines
+  colors
+  form)
+
 (defun runo-syllable-color (syllable-type metron-type syllable-index metron-index)
   ""
   (if (null syllable-type) ; paint regexp matches blue
@@ -283,6 +298,28 @@ SUBSEQUENT used for voodoo recursion."
 	 (cons element subsequent)
        (list element subsequent)))))
 
+(defun runo-store-meter (name lines colors form)
+  ""
+  (when (gethash name runo-meter-map)
+    (message "Redefining meter keyed to %s!" name))
+  (puthash name
+	   (make-runo-meter :lines lines
+			    :colors colors
+			    :form form)
+	   runo-meter-map)
+  (puthash name
+	   (runo-compiler-dispatch form)
+	   runo-compiled-meter-map))
+
+(defun set-meter (meter-name)
+  ""
+  (let ((meter (gethash meter-name runo-meter-map)))
+    (setf runo-mitta (gethash meter-name runo-compiled-meter-map)
+	  runo-lines-per-meter (runo-meter-lines meter)
+	  runo-meter-color-function
+	  (make-metron-color-func (runo-meter-colors meter))))
+  nil)
+
 ;;'(a b c d e) -> (a (b (c (d (e . nil)))))
 (defun runo-compile-sequence (form old-subs)
   "Compile linear sequence based on FORM.
@@ -302,9 +339,6 @@ SUBSEQUENT used for voodoo recursion."
   (mapcar (lambda (x)
 	    (runo-compiler-dispatch x subsequent))
 	  form))
-
-(progn (setf runo-mitta (runo-compiler-dispatch runo-eeppinen-mitta))
-       nil)
 
 (defun runo-members (elts list)
   "Return T when all ELTS found in LIST."
@@ -597,8 +631,6 @@ Will return result of meter analysis."
 				   (list pos
 					 (setf pos (+ pos (length string)))))))))
 	    split-line)))
-
-(defvar *runo-custom-syllabification* (make-hash-table :test 'equal))
 
 (defun runo-format-syllabification (word)
   "Produce syllabificated string of WORD where syllable length designated by -."
