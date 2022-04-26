@@ -73,17 +73,7 @@
 		  syllable-si))
        (when metron-type ; if metron analysis was ok
 	 (list :background
-	       (elt (pcase (car metron-type)
-		      ('daktyyli '("#ffe1e1""#ffd3cb"))
-		      ('spondee '("#ffffe1" "#fff3cb"))
-		      ('trokee '("#e1ffe1" "#d8fec0"))
-
-		      ('kaksijalka '("#ffe1e1""#ffd3cb"))
-		      ('kolmijalka '("#ffe1e1""#ffd3cb"))
-		      ('nelijalka '("#ffe1e1""#ffd3cb"))
-		      ('tasajalka '("#ffffe1" "#fff3cb"))
-		      ('murtojalka '("#e1ffe1" "#d8fec0"))
-		      ('jatkojalka '("#e1ffe1" "#d8fec0")))
+	       (elt (funcall runo-meter-color-function (car metron-type))
 		    metron-si)))))))
 
 (defun make-metron-color-func (alist)
@@ -103,9 +93,7 @@
    start end
    '(:strike-through "#880000")))
 
-(defvar runo-lines-per-meter 1)
-
-(defmacro defmeter (symbol &optional short-hands &rest body)
+(defmacro defmeter (symbol lines colors short-hands &rest body)
   ""
   (cl-labels ((traverse (tree function)
 		(cond ((listp tree)
@@ -133,12 +121,9 @@
 				    (cdr flat-tree))))
 		  tree)))
     (let ((length (length body)))
-      `(progn
-	 (,(if (boundp symbol)
-	       (progn (message "Redefining meter bound to %s" symbol)
-		      'setf)
-	     'defvar)
-	  ,symbol
+      `(progn '(:symbol ,symbol)
+	 (runo-store-meter
+	  ',symbol ,lines ',colors
 	  '(,@(flat (append '(seq) (traverse body
 				  (lambda (x)
 				    (cond ((eq x 'name) 'named-seq)
