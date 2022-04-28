@@ -813,6 +813,42 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 	     jatko jatko))
    kesuura)
 
+(defmeter runo-anapestinen-dimetri
+  1
+  ((daktyyli "#ffe1e1" "#ffd3cb")
+   (spondee "#ffffe1" "#fff3cb")
+   (anapesti "#e1ffe1" "#d8fec0")
+   (paroimiakos "#a6a6f2" "#bfbfff")) ; metronin katalektinen osa
+  ((dak (seq (or pitkä puolipitkä)
+	     (or lyhyt puolipitkä)
+	     (or lyhyt puolipitkä)))
+   (spo (seq (or pitkä puolipitkä)
+	     (or pitkä puolipitkä)))
+   (ana (seq (or lyhyt puolipitkä)
+	     (or lyhyt puolipitkä)
+	     (or pitkä puolipitkä))))
+  (or (name (spondee 1) spo)
+      (name (daktyyli 1) dak)
+      (name (anapesti 1) ana))
+  (or (name (spondee 2) spo)
+      (name (daktyyli 2) dak)
+      (name (anapesti 2) ana))
+  (or (seq (or (name (spondee 3) spo)
+	       (name (daktyyli 3) dak)
+	       (name (anapesti 3) ana))
+	   (or (name (spondee 4) spo)
+	       (name (daktyyli 4) dak)
+	       (name (anapesti 4) ana)
+	       (name (paroimiakos 4)
+		     (or lyhyt puolipitkä pitkä)))
+	   kesuura)
+      kesuura)) ; this one doesn't seem to work & if placed first in or will break totally
+;;; TODO:
+;; "jotka herramme Kserkses, kuningas,"
+;; should be anapesti x 3 & paroimiakos
+;; but is daktyyli x 3 & paroimiakos instead
+
+
 ;;Some testing funcs:
 (defun set-ed ()
   "Setup elegiac couplet."
@@ -823,6 +859,9 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 (defun set-km ()
   "Setup kalevala meter."
   (set-meter 'runo-kalevalamitta))
+(defun set-ad ()
+  "Setup runo-anapestinen-dimetri."
+  (set-meter 'runo-anapestinen-dimetri))
 
 (set-em)
 
