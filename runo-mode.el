@@ -41,6 +41,7 @@
   "\\(?:[,.?!:; \n]\\)")
 
 (defvar runo-mitta nil)
+(defvar runo-lines-per-meter 1)
 (defvar runo-meter-color-function nil)
 
 (defvar runo-meter-map (make-hash-table :test 'eq)
