@@ -827,27 +827,22 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
    (ana (seq (or lyhyt puolipitkä)
 	     (or lyhyt puolipitkä)
 	     (or pitkä puolipitkä))))
-  (or (name (spondee 1) spo)
-      (name (daktyyli 1) dak)
-      (name (anapesti 1) ana))
-  (or (name (spondee 2) spo)
-      (name (daktyyli 2) dak)
-      (name (anapesti 2) ana))
-  (or (seq (or (name (spondee 3) spo)
-	       (name (daktyyli 3) dak)
-	       (name (anapesti 3) ana))
-	   (or (name (spondee 4) spo)
+  (or (name (anapesti 1) ana)
+      (name (spondee 1) spo)
+      (name (daktyyli 1) dak))
+  (or (name (anapesti 2) ana)
+      (name (spondee 2) spo)
+      (name (daktyyli 2) dak))
+  (or (seq (or (name (anapesti 3) ana)
+	       (name (spondee 3) spo)
+	       (name (daktyyli 3) dak))
+	   (or (name (anapesti 4) ana)
+	       (name (spondee 4) spo)
 	       (name (daktyyli 4) dak)
-	       (name (anapesti 4) ana)
 	       (name (paroimiakos 4)
 		     (or lyhyt puolipitkä pitkä)))
 	   kesuura)
       kesuura)) ; this one doesn't seem to work & if placed first in or will break totally
-;;; TODO:
-;; "jotka herramme Kserkses, kuningas,"
-;; should be anapesti x 3 & paroimiakos
-;; but is daktyyli x 3 & paroimiakos instead
-
 
 ;;Some testing funcs:
 (defun set-ed ()
