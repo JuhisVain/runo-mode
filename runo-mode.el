@@ -206,8 +206,9 @@ Don't touch OLD-SUBS."
 	 (let ((subsequent (when (cdr form)
 			     (runo-compile-sequence (cdr form) old-subs))))
 	   (runo-compiler-dispatch (car form) (or subsequent old-subs)))))
-    (when (and (listp (car ret)) (listp (caar ret)))
-      (setf ret (cl-reduce 'append ret))) ;; WTF
+    (when (and (listp (car ret))
+	       (listp (caar ret)))
+      (setf ret (append (car ret) (cdr ret))))
     ret))
 
 ;;'(a b c d e) -> ((a) (b) (c) (d) (e))
@@ -833,7 +834,8 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
   (or (name (anapesti 2) ana)
       (name (spondee 2) spo)
       (name (daktyyli 2) dak))
-  (or (seq (or (name (anapesti 3) ana)
+  (or (seq ;kesuura ;should be here!
+	   (or (name (anapesti 3) ana)
 	       (name (spondee 3) spo)
 	       (name (daktyyli 3) dak))
 	   (or (name (anapesti 4) ana)
@@ -842,7 +844,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 	       (name (paroimiakos 4)
 		     (or lyhyt puolipitkä pitkä)))
 	   kesuura)
-      kesuura)) ; this one doesn't seem to work & if placed first in or will break totally
+      kesuura))
 
 ;;Some testing funcs:
 (defun set-ed ()
