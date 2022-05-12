@@ -140,6 +140,54 @@
 					       x))))))))))
 	 ',symbol))))
 
+
+(defun runo-compiler-dispatch (form &optional subsequent)
+  ""
+  (message "  DISPATCH F: %s sub: %s" form subsequent)
+  (pcase form
+    (`(seq . ,sequence)
+     (runo-compile-sequence sequence subsequent))
+    (`(or . ,options)
+     (runo-compile-options options subsequent))
+    (`(named-seq ,name . ,sequence)
+     (list (list :name name)
+	   (runo-compile-sequence sequence subsequent)))
+    (element
+     (runo-compile-element element subsequent))))
+
+(defun runo-compile-element (element subsequent)
+  ""
+  (message "RCE %s // %s" element subsequent)
+  (when (and subsequent (atom (car subsequent)))
+    (setf subsequent (list subsequent)))
+  (pcase element
+    (`(and . ,properties)
+     (cons (cons :and properties)
+	   subsequent))
+    (`(regexp ,rx)
+     (cons (list 'regexp rx) subsequent))
+    (element
+     (cons element subsequent))))
+
+(defun runo-compile-sequence (form old-subs)
+  ""
+  (if form
+    (let ((rest (runo-compile-sequence (cdr form) old-subs)))
+      (message "RCS %s // %s" form rest)
+      (runo-compiler-dispatch (car form) rest))
+    old-subs))
+
+;;'(a b c d e) -> ((a) (b) (c) (d) (e))
+(defun runo-compile-options (form subsequent)
+  "Dispatch compiler on all element in FORM.
+SUBSEQUENT used for voodoo recursion."
+  (message "RCO %s" subsequent)
+  (mapcar (lambda (x)
+	    (runo-compiler-dispatch x subsequent))
+	  form))
+
+
+
 ;;; The human readable meters must be compiled into a tree to allow
 ;; backtracking on the OR forms.
 (defun runo-compiler-dispatch (form &optional subsequent)
