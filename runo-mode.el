@@ -143,7 +143,7 @@
 
 (defun runo-compiler-dispatch (form &optional subsequent)
   ""
-  (message "  DISPATCH F: %s sub: %s" form subsequent)
+  '(message "  DISPATCH F: %s sub: %s" form subsequent)
   (pcase form
     (`(seq . ,sequence)
      (runo-compile-sequence sequence subsequent))
@@ -157,7 +157,7 @@
 
 (defun runo-compile-element (element subsequent)
   ""
-  (message "RCE %s // %s" element subsequent)
+  '(message "RCE %s // %s" element subsequent)
   (when (and subsequent (atom (car subsequent)))
     (setf subsequent (list subsequent)))
   (pcase element
@@ -165,7 +165,8 @@
      (cons (cons :and properties)
 	   subsequent))
     (`(regexp ,rx)
-     (cons (list 'regexp rx) subsequent))
+     (message "Regexp compilation %s // %s" element subsequent)
+     (cons (list (list 'regexp rx)) subsequent))
     (element
      (cons element subsequent))))
 
@@ -173,7 +174,7 @@
   ""
   (if form
     (let ((rest (runo-compile-sequence (cdr form) old-subs)))
-      (message "RCS %s // %s" form rest)
+      '(message "RCS %s // %s" form rest)
       (runo-compiler-dispatch (car form) rest))
     old-subs))
 
@@ -181,7 +182,7 @@
 (defun runo-compile-options (form subsequent)
   "Dispatch compiler on all element in FORM.
 SUBSEQUENT used for voodoo recursion."
-  (message "RCO %s" subsequent)
+  '(message "RCO %s" subsequent)
   (mapcar (lambda (x)
 	    (runo-compiler-dispatch x subsequent))
 	  form))
@@ -190,7 +191,7 @@ SUBSEQUENT used for voodoo recursion."
 
 ;;; The human readable meters must be compiled into a tree to allow
 ;; backtracking on the OR forms.
-(defun runo-compiler-dispatch (form &optional subsequent)
+'(defun runo-compiler-dispatch (form &optional subsequent)
   "Return a tree representing !!!EVERY POSSIBLE SEQUENCE!!! of meter FORM.
 SUBSEQUENT used for voodoo recursion."
   (pcase form
@@ -241,7 +242,7 @@ SUBSEQUENT used for voodoo recursion."
   nil)
 
 ;;'(a b c d e) -> (a (b (c (d (e . nil)))))
-(defun runo-compile-sequence (form old-subs)
+'(defun runo-compile-sequence (form old-subs)
   "Compile linear sequence based on FORM.
 Don't touch OLD-SUBS."
   (let ((ret
@@ -255,7 +256,7 @@ Don't touch OLD-SUBS."
     ret))
 
 ;;'(a b c d e) -> ((a) (b) (c) (d) (e))
-(defun runo-compile-options (form subsequent)
+'(defun runo-compile-options (form subsequent)
   "Dispatch compiler on all element in FORM.
 SUBSEQUENT used for voodoo recursion."
   (mapcar (lambda (x)
@@ -292,37 +293,58 @@ Annotated with named-sequence names and ending with :end on success,
 		   (throw 'FOUND (cons :end rest-analysis))
 		 ;; subsequent analysis fails:
 		 (throw 'FOUND (list :extra))))))
-      (dolist (option sub-meter)
+      (dolist (option sub-meter) '(message "DOLIST %s" (or (and (not (listp option))
+							       (list nil option))
+							  (and (not (listp (car option)))
+							       (list 'car (car option)))
+							  (and (not (listp (caar option)))
+							       (list 'caar (caar option)))
+							  (and (not (listp (caaar option)))
+							       (list 'caaar(caaar option)))
+							  (and (not (listp (caaaar option)))
+							       (list 'caaaar(caaaar option)))))
 	(let* ((found
 		(pcase option
-		  (`((regexp ,rx) . ,rest)
+		  (`((regexp ,rx) . ,rest) '(message "  FREGEXP")
 		   (when (string-match rx (caar line))
 		     'rx-match))
-		  (`(:name ,name . ,section)
+		  (`((:name ,name . ,section) . ,whatever) '(message "  NAME %s" name)
 		   (list :name name))
-		  (`((:and . ,required) . ,rest)
+		  ;;(`((:name ,name . ,section) . ,whatever) ;; rubberbands and paperglue
+		  ;; (message "  (((NAME %s" name)
+		  ;; (list :name name))
+		  (`((:and . ,required) . ,rest) '(message "  AND %s // %s -> %s"
+							  required
+							  (car next-syllable)
+							  (runo-members
+							   required (cddar next-syllable)))
 		   ;; Let's say these props MUST for now be syllable properties and not regexps
 		   (cond (next-syllable
 			  (runo-members required (cddar next-syllable)))
 			 (t (throw 'FOUND (list :incomplete)))))
-		  (next
+		  (next '(message "  NEXT %s" (car next-syllable))
+			(when (equal (caar next-syllable) "nun")
+			  '(message "  !! %s" option)) ;;; TODO: names 3 wrapped too much
 		   (cond (next-syllable
 			  (when (member (car next) (cddar next-syllable))
 			    (car next)))
 			 (t (throw 'FOUND (list :incomplete))))))))
-	  (when found
+	  (when found '(message " -> FOUND!!")
 	    (let ((found-rest
 		   (apply 'runo-analyze-line
 			  ;; essentially get name:
 			  (pcase (or (and (listp found) (car found))
 				     ;; regexp match?
 				     (and (eq found 'rx-match) 'rx-match))
-			    (:name (list line (cddr option)))
+			    (:name '(message " name-> %s" found)
+				   (list line (cadr option)))
 			    ('rx-match
 			     (list (cdr line) ; consume one line element
 				   (cdr option)))
 			    ;; consume line until next-syllable:
-			    (- (list (cdr next-syllable)
+			    (_ '(message " _-> %s" (list (cdr next-syllable)
+							(cdr option))) ;;; Sometimes this is too wrapped
+			       (list (cdr next-syllable)
 				     (cdr option)))))))
 	      (when found-rest
 		(setf return (cond ((eq found 'rx-match)
@@ -754,7 +776,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
   (run-hooks 'runo-mode-hook))
 
 
-(defmeter runo-eeppinen-mitta
+'(defmeter runo-eeppinen-mitta
   1 ; lines per meter
   ((daktyyli "#ffe1e1" "#ffd3cb") ; background colors to use for named sequences
    (spondee "#ffffe1" "#fff3cb")
@@ -774,12 +796,12 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
       (name (spondee 3) spo))
   (or (name (daktyyli 4) dak)
       (name (spondee 4) spo))
-  (name (daktyyli 5) dak)
+  (name (daktyyli 5) dak) ;; PROBLEM on no OR!!
   (or (name (spondee 6) spo)
       (name (trokee 6) tro))
   kesuura)
 
-(defmeter runo-eleginen-distikon
+'(defmeter runo-eleginen-distikon
   2
   ((daktyyli "#ffe1e1" "#ffd3cb")
    (spondee "#ffffe1" "#fff3cb")
@@ -816,7 +838,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
   (name (trokee 12) (or pitkä puolipitkä))
   kesuura)
 
-(defmeter runo-kalevalamitta ;;; TODO BROKEN
+'(defmeter runo-kalevalamitta ;;; TODO BROKEN
   1
   ((kaksijalka "#ffe1e1""#ffd3cb")
    (kolmijalka "#ffe1e1""#ffd3cb")
@@ -857,7 +879,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
 	    jatko jatko))
   kesuura)
 
-(defmeter runo-anapestinen-dimetri
+'(defmeter runo-anapestinen-dimetri
   1
   ((daktyyli "#ffe1e1" "#ffd3cb")
    (spondee "#ffffe1" "#fff3cb")
