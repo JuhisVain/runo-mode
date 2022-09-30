@@ -158,7 +158,8 @@
 (defun runo-compile-element (element subsequent)
   ""
   '(message "RCE %s // %s" element subsequent)
-  (when (and subsequent (atom (car subsequent)))
+  (when (and subsequent (or (atom (car subsequent))
+			    (eq :name (caar subsequent))))
     (setf subsequent (list subsequent)))
   (pcase element
     (`(and . ,properties)
@@ -796,7 +797,7 @@ SYLLABLE-INDEX should hold the index of current syllable in colloquial word."
       (name (spondee 3) spo))
   (or (name (daktyyli 4) dak)
       (name (spondee 4) spo))
-  (name (daktyyli 5) dak) ;; PROBLEM on no OR!!
+  (name (daktyyli 5) dak)
   (or (name (spondee 6) spo)
       (name (trokee 6) tro))
   kesuura)
