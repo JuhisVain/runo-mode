@@ -150,6 +150,7 @@
     (`(or . ,options)
      (runo-compile-options options subsequent))
     (`(named-seq ,name . ,sequence)
+     '(message "name %s" name)
      (list (list :name name)
 	   (runo-compile-sequence sequence subsequent)))
     (element
@@ -166,7 +167,7 @@
      (cons (cons :and properties)
 	   subsequent))
     (`(regexp ,rx)
-     (message "Regexp compilation %s // %s" element subsequent)
+     '(message "Regexp compilation %s // %s" element subsequent)
      (cons (list (list 'regexp rx)) subsequent))
     (element
      (cons element subsequent))))
